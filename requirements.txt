@@ -1,0 +1,5 @@
+discord.py[voice]
+sqlalchemy
+valclient
+requests
+valorant-api
