@@ -18,7 +18,7 @@ def build_logger() -> logging.Logger:
 
 
 class ValorantStoreBot(commands.Bot):
-    def __init__(self, prefix: str, intents: discord.Intents):
+    def __init__(self, prefix: str, intents: Optional[discord.Intents] = None):
         super().__init__(prefix, intents=intents)
         for c in INITIAL_EXTENSIONS:
             self.load_extension(c)
