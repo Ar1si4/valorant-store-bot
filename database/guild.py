@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from sqlalchemy import Column, Integer
+from sqlalchemy.orm import Session
 
 from .setting import Base
 
@@ -11,7 +12,7 @@ class Guild(Base):
     id: int = Column("id", Integer, primary_key=True)
 
     @staticmethod
-    def get_promised(session, id: int) -> Guild:
+    def get_promised(session: Session, id: int) -> Guild:
         guild = session.query(Guild).filter(Guild.id == id).first()
         if guild is not None:
             return guild
