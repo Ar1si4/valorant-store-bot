@@ -5,6 +5,7 @@ import discord
 import sqlalchemy.orm
 from discord.ext import commands
 
+import valclient
 from database import session
 from setting import INITIAL_EXTENSIONS
 
@@ -16,6 +17,13 @@ def build_logger() -> logging.Logger:
     logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO,
                         handlers=[sth, flh])
     return logging.getLogger(__name__)
+
+
+def new_valorant_client_api(region: str, name: str, password: str):
+    return valclient.Client(region=region, auth={
+        "username": name,
+        "password": password
+    })
 
 
 class ValorantStoreBot(commands.Bot):
