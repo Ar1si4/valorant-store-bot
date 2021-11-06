@@ -1,5 +1,4 @@
 sqlalchemy
-valclient
 requests
 valorant-api
 git+https://github.com/Rapptz/discord.py
