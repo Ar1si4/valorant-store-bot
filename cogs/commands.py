@@ -15,7 +15,7 @@ class CommandsHandler(commands.Cog):
 
     @commands.command("language", aliases=["言語"])
     async def change_language(self, ctx: Context):
-        view = discord.ui.View()
+        view = discord.ui.View(timeout=0.5)
 
         def button_pushed_lang(lang: str):
             async def button_pushed(interaction: Interaction):
