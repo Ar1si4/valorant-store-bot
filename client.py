@@ -19,7 +19,7 @@ def build_logger() -> logging.Logger:
     return logging.getLogger(__name__)
 
 
-def new_valorant_client_api(region: str, name: str, password: str):
+def new_valorant_client_api(region: str, name: str, password: str) -> valclient.Client:
     return valclient.Client(region=region, auth={
         "username": name,
         "password": password
@@ -34,6 +34,14 @@ class ValorantStoreBot(commands.Bot):
 
         self.database: sqlalchemy.orm.Session = session
         self.logger: logging.Logger = build_logger()
+
+    def get_valorant_rank_tier(self, cl: valclient.Client) -> str:
+        tier_to_name = ["UNRANKED", "Unused1", "Unused2", "IRON 1", "IRON 2", "IRON 3", "BRONZE 1",
+                        "BRONZE 2", "BRONZE 3", "SILVER 1", "SILVER 2", "SILVER 3", "GOLD 1", "GOLD 2",
+                        "GOLD 3", "PLATINUM 1", "PLATINUM 2", "PLATINUM 3", "DIAMOND 1", "DIAMOND 2",
+                        "DIAMOND 3", "IMMORTAL 1", "IMMORTAL 2", "IMMORTAL 3", "RADIANT"]
+        tier = cl.fetch_competitive_updates()["Matches"][0]["TierAfterUpdate"]
+        return tier_to_name[tier]
 
     async def on_ready(self):
         print(f"bot started: {self.user}")

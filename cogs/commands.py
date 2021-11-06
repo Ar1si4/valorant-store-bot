@@ -57,7 +57,8 @@ class CommandsHandler(commands.Cog):
         guild = Guild.get_promised(self.bot.database, ctx.guild.id)
         guild.response_here = ctx.channel.id
         self.bot.database.commit()
-        await ctx.send(user.get_text(f"<#{guild.response_here}> のみでBOTがshopコマンドに反応するように設定しました。[everywhere]コマンドで解除できます", f"<#{guild.response_here}> only set the BOT to respond to the shop command.\nThis can be deactivated with the [everywhere] command"))
+        await ctx.send(user.get_text(f"<#{guild.response_here}> のみでBOTがshopコマンドに反応するように設定しました。[everywhere]コマンドで解除できます",
+                                     f"<#{guild.response_here}> only set the BOT to respond to the shop command.\nThis can be deactivated with the [everywhere] command"))
 
     @commands.command("everywhere")
     @commands.has_permissions(administrator=True)
@@ -66,7 +67,8 @@ class CommandsHandler(commands.Cog):
         guild = Guild.get_promised(self.bot.database, ctx.guild.id)
         guild.response_here = ""
         self.bot.database.commit()
-        await ctx.send(user.get_text(f"すべての場所でBOTがshopコマンドに反応するように設定しました。", "All locations have been set up so that the BOT responds to shop commands."))
+        await ctx.send(user.get_text(f"すべての場所でBOTがshopコマンドに反応するように設定しました。",
+                                     "All locations have been set up so that the BOT responds to shop commands."))
 
     @commands.command("rank")
     async def get_account_rank(self, ctx: Context):
@@ -87,12 +89,7 @@ class CommandsHandler(commands.Cog):
                         "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command."))
                     view.stop()
                     return
-                tier_to_name = ["UNRANKED", "Unused1", "Unused2", "IRON 1", "IRON 2", "IRON 3", "BRONZE 1",
-                                "BRONZE 2", "BRONZE 3", "SILVER 1", "SILVER 2", "SILVER 3", "GOLD 1", "GOLD 2",
-                                "GOLD 3", "PLATINUM 1", "PLATINUM 2", "PLATINUM 3", "DIAMOND 1", "DIAMOND 2",
-                                "DIAMOND 3", "IMMORTAL 1", "IMMORTAL 2", "IMMORTAL 3", "RADIANT"]
-                tier = cl.fetch_competitive_updates()["Matches"][0]["TierAfterUpdate"]
-                await ctx.send(tier_to_name[tier])
+                await ctx.send(self.bot.get_valorant_rank_tier(cl))
 
             return select_account_region
 
@@ -353,14 +350,9 @@ class CommandsHandler(commands.Cog):
         riot_account.game_name = f"{name[0]['GameName']}#{name[0]['TagLine']}"
         user.riot_accounts.append(riot_account)
         self.bot.database.commit()
-        tier_to_name = ["UNRANKED", "Unused1", "Unused2", "IRON 1", "IRON 2", "IRON 3", "BRONZE 1",
-                        "BRONZE 2", "BRONZE 3", "SILVER 1", "SILVER 2", "SILVER 3", "GOLD 1", "GOLD 2",
-                        "GOLD 3", "PLATINUM 1", "PLATINUM 2", "PLATINUM 3", "DIAMOND 1", "DIAMOND 2",
-                        "DIAMOND 3", "IMMORTAL 1", "IMMORTAL 2", "IMMORTAL 3", "RADIANT"]
-        tier = cl.fetch_competitive_updates()["Matches"][0]["TierAfterUpdate"]
         await to.send(user.get_text(
-            f"ログイン情報の入力が完了しました。\n{name[0]['GameName']}#{name[0]['TagLine']}\nRANK: {tier_to_name[tier]}",
-            f"Your login information has been entered.\n{name[0]['GameName']}#{name[0]['TagLine']}\nRANK: {tier_to_name[tier]}"
+            f"ログイン情報の入力が完了しました。\n{name[0]['GameName']}#{name[0]['TagLine']}\nRANK: {self.bot.get_valorant_rank_tier(cl)}",
+            f"Your login information has been entered.\n{name[0]['GameName']}#{name[0]['TagLine']}\nRANK: {self.bot.get_valorant_rank_tier(cl)}"
         ))
 
     @commands.command("unregister", aliases=["登録解除"])
