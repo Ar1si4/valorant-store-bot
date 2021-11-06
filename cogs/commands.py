@@ -23,8 +23,11 @@ class CommandsHandler(commands.Cog):
         view = discord.ui.View(timeout=240)
         accounts = user.riot_accounts
         if len(accounts) == 1:
+            async def noop(*args, **kwargs): ...
+
             await func(view)(type("Interaction", (object,), {
-                "data": {"values": [accounts[0].game_name]}
+                "data": {"values": [accounts[0].game_name]},
+                "response": type("InteractionResponse", (object,), {"send_message": noop})
             }))
             return
         menu = discord.ui.Select(options=[
@@ -47,6 +50,7 @@ class CommandsHandler(commands.Cog):
     async def fetch_night_market(self, ctx: Context):
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
+                await interaction.response.send_message("実行中...")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
                     RiotAccount.game_name == interaction.data["values"][0]).first()
                 cl = new_valorant_client_api(account.region, account.username, account.password)
@@ -125,7 +129,7 @@ class CommandsHandler(commands.Cog):
             maps = ["Icebox", "Breeze", "Ascent", "Haven", "Split", "Bind", "Fracture"]
         await ctx.send(random.choice(maps))
 
-    @commands.command("language", aliases=["言語"])
+    @commands.command("language", aliases=["lang", "言語"])
     async def change_language(self, ctx: Context):
         view = discord.ui.View(timeout=60)
 
@@ -271,6 +275,7 @@ class CommandsHandler(commands.Cog):
 
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
+                await interaction.response.send_message("実行中...")
                 account = self.bot.database.query(RiotAccount).filter(
                     RiotAccount.game_name == interaction.data["values"][0]).first()
                 self.bot.database.delete(account)
