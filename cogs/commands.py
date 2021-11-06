@@ -49,6 +49,28 @@ class CommandsHandler(commands.Cog):
             await ctx.send(user.get_text("４分以上応答がないため、登録のプロセスを終了します。",
                                          "Since there is no response for more than 4 minutes, the registration process is terminated."))
 
+    @commands.command("list")
+    async def list_accounts(self, ctx: Context):
+        user = User.get_promised(self.bot.database, ctx.message.author.id)
+        if len(user.riot_accounts) == 0:
+            await ctx.send(user.get_text("アカウント情報が登録されていません\n[登録]コマンドを利用して登録してください",
+                                         "Your account information has not been registered yet \nAdd your account information using the [register] command."))
+            return
+        await ctx.send("\n".join([account.game_name for account in user.riot_accounts]))
+
+    @commands.command("update")
+    async def update_account(self, ctx: Context):
+        user = User.get_promised(self.bot.database, ctx.message.author.id)
+        if not isinstance(ctx.message.channel, discord.channel.DMChannel) or ctx.message.author == self.bot.user:
+            await ctx.send(user.get_text("この動作は個人チャットでする必要があります。", "This action needs to be done in private chat"))
+            return
+        if len(user.riot_accounts) == 0:
+            await ctx.send(user.get_text("アカウント情報が登録されていません\n[登録]コマンドを利用して登録してください",
+                                         "Your account information has not been registered yet \nAdd your account information using the [register] command."))
+            return
+        await self.unregister_riot_account(ctx)
+        await self.register_riot_user_internal(ctx.message.author)
+
     @commands.command("nightmarket", aliases=["ナイトストア"])
     async def fetch_night_market(self, ctx: Context):
         def wrapper(view: discord.ui.View):
