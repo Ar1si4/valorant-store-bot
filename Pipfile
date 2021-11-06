@@ -4,11 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-"discord.py" = {extras = ["voice"], version = "*"}
 valclient = "*"
 requests = "*"
 valorant-api = "*"
 SQLAlchemy = "*"
+"discord.py" = {git = "https://github.com/Rapptz/discord.py"}
 
 [dev-packages]
 
