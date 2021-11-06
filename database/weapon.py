@@ -22,7 +22,7 @@ class Weapon(Base):
         if weapon is not None:
             return weapon
 
-        skin = SyncValorantApi(user.language).search_weapon_levels_by_uuid(uuid)
+        skin = SyncValorantApi(language=user.language).search_weapon_levels_by_uuid(uuid)
 
         new_weapon = Weapon(
             uuid=uuid,
