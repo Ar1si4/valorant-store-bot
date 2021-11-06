@@ -10,6 +10,7 @@ class Guild(Base):
     __tablename__ = "guilds"
 
     id: int = Column("id", Integer, primary_key=True)
+    response_here: int = Column("response_here", Integer)
 
     @staticmethod
     def get_promised(session: Session, id: int) -> Guild:

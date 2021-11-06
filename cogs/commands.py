@@ -9,7 +9,7 @@ from discord.ext import commands
 from discord.ext.commands import Context
 
 from client import ValorantStoreBot, new_valorant_client_api
-from database import User, Weapon
+from database import User, Weapon, Guild
 from database.user import RiotAccount
 
 
@@ -49,6 +49,24 @@ class CommandsHandler(commands.Cog):
         if view_stat:
             await ctx.send(user.get_text("４分以上応答がないため、登録のプロセスを終了します。",
                                          "Since there is no response for more than 4 minutes, the registration process is terminated."))
+
+    @commands.command("onlyhere")
+    @commands.has_permissions(administrator=True)
+    async def response_only_this_channel(self, ctx: Context):
+        user = User.get_promised(self.bot.database, ctx.message.author.id)
+        guild = Guild.get_promised(self.bot.database, ctx.guild.id)
+        guild.response_here = ctx.channel.id
+        self.bot.database.commit()
+        await ctx.send(user.get_text(f"<#{guild.response_here}> のみでBOTがshopコマンドに反応するように設定しました。[everywhere]コマンドで解除できます", f"<#{guild.response_here}> only set the BOT to respond to the shop command.\nThis can be deactivated with the [everywhere] command"))
+
+    @commands.command("everywhere")
+    @commands.has_permissions(administrator=True)
+    async def response_only_this_channel(self, ctx: Context):
+        user = User.get_promised(self.bot.database, ctx.message.author.id)
+        guild = Guild.get_promised(self.bot.database, ctx.guild.id)
+        guild.response_here = ""
+        self.bot.database.commit()
+        await ctx.send(user.get_text(f"すべての場所でBOTがshopコマンドに反応するように設定しました。", "All locations have been set up so that the BOT responds to shop commands."))
 
     @commands.command("rank")
     async def get_account_rank(self, ctx: Context):
@@ -136,6 +154,13 @@ class CommandsHandler(commands.Cog):
 
             return select_account_region
 
+        if isinstance(ctx.message.channel, discord.channel.DMChannel) and ctx.message.author != self.bot.user:
+            await self.list_account_and_execute(ctx, wrapper)
+            return
+
+        guild = Guild.get_promised(self.bot.database, ctx.guild.id)
+        if guild.response_here != "" and ctx.channel.id != guild.response_here:
+            return
         await self.list_account_and_execute(ctx, wrapper)
 
     @commands.command("shop", aliases=["store", "ショップ", "ストア"])
@@ -175,6 +200,13 @@ class CommandsHandler(commands.Cog):
 
             return select_account_region
 
+        if isinstance(ctx.message.channel, discord.channel.DMChannel) and ctx.message.author != self.bot.user:
+            await self.list_account_and_execute(ctx, wrapper)
+            return
+
+        guild = Guild.get_promised(self.bot.database, ctx.guild.id)
+        if guild.response_here != "" and ctx.channel.id != guild.response_here:
+            return
         await self.list_account_and_execute(ctx, wrapper)
 
     @commands.command("randommap", aliases=["ランダムマップ"])
