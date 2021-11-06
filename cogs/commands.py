@@ -112,6 +112,7 @@ class CommandsHandler(commands.Cog):
     async def fetch_today_shop(self, ctx: Context):
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
+                await interaction.response.send_message("実行中...")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
                     RiotAccount.game_name == interaction.data["values"][0]).first()
                 cl = new_valorant_client_api(account.region, account.username, account.password)
