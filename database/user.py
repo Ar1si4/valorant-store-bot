@@ -35,6 +35,8 @@ class User(Base):
 class RiotAccount(Base):
     __tablename__ = "riot_accounts"
 
+    uuid: int = Column("uuid", Integer, autoincrement=True, primary_key=True)
+
     username: str = Column("username", String)
     password: str = Column("password", String)
     region: str = Column("region", String)
