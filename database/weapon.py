@@ -1,5 +1,5 @@
 from __future__ import annotations
-from sqlalchemy import String, Column
+from sqlalchemy import String, Column, Integer
 from sqlalchemy.orm import Session
 from valorant_api import SyncValorantApi
 
@@ -10,8 +10,10 @@ from .setting import Base
 class Weapon(Base):
     __tablename__ = "weapons"
 
-    uuid: str = Column("uuid", String, primary_key=True)
-    lang: str = Column("lang", String)
+    id: str = Column("id", Integer, primary_key=True)
+
+    uuid: str = Column("uuid", String, unique=True)
+    lang: str = Column("lang", String, unique=True)
     display_name: str = Column("display_name", String)
     display_icon: str = Column("display_icon", String)
     streamed_video: str = Column("streamed_video", String)
