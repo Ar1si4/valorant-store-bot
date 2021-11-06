@@ -14,7 +14,7 @@ class User(Base):
     id: int = Column("id", Integer, primary_key=True)
     language: str = Column("language", String)
 
-    riot_accounts: List[RiotAccount] = relationship("RiotAccount", overlaps="riot_accounts")
+    riot_accounts: List[RiotAccount] = relationship("RiotAccount", backref="users")
 
     @staticmethod
     def get_promised(session: Session, id: int) -> User:
@@ -44,4 +44,3 @@ class RiotAccount(Base):
     game_name: str = Column("game_name", String)
 
     user_id: int = Column("user_id", Integer, ForeignKey("users.id"))
-    user = relationship("User", backref="RiotAccount", overlaps="riot_accounts")
