@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import datetime
 from typing import List
 
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, DATETIME
 from sqlalchemy.orm import Session, relationship
 
 from .setting import Base
@@ -13,6 +14,9 @@ class User(Base):
 
     id: int = Column("id", Integer, primary_key=True)
     language: str = Column("language", String)
+
+    try_activate_count: int = Column("try_activate_count", Integer, default=0)
+    activation_locked_at: datetime.datetime = Column("activation_locked_at", DATETIME)
 
     riot_accounts: List[RiotAccount] = relationship("RiotAccount", backref="users")
 
@@ -44,3 +48,6 @@ class RiotAccount(Base):
     game_name: str = Column("game_name", String)
 
     user_id: int = Column("user_id", Integer, ForeignKey("users.id"))
+
+    last_get_shops_at: datetime.datetime = Column("last_get_shops_at", DATETIME)
+    last_get_night_shops_at: datetime.datetime = Column("last_get_night_shops_at", DATETIME)
