@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from sqlalchemy import Column, Integer, String
-from sqlalchemy.orm import Session
+from typing import List
+
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
+from sqlalchemy.orm import Session, relationship
 
 from .setting import Base
 
@@ -11,6 +13,8 @@ class User(Base):
 
     id: int = Column("id", Integer, primary_key=True)
     language: str = Column("language", String)
+
+    riot_accounts: List[RiotAccount] = relationship("RiotAccount")
 
     @staticmethod
     def get_promised(session: Session, id: int) -> User:
@@ -26,3 +30,16 @@ class User(Base):
         if self.language == "ja-JP":
             return ja
         return en
+
+
+class RiotAccount(Base):
+    __tablename__ = "riot_accounts"
+
+    username: str = Column("username", String)
+    password: str = Column("password", String)
+    region: str = Column("region", String)
+
+    riot_id: str = Column("riot_id", String)
+
+    user_id: int = Column(Integer, ForeignKey("users.id"))
+    user = relationship("User", backref="RiotAccount")
