@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List
 
-from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import Session, relationship
 
 from .setting import Base
@@ -14,7 +14,7 @@ class User(Base):
     id: int = Column("id", Integer, primary_key=True)
     language: str = Column("language", String)
 
-    riot_accounts: List[RiotAccount] = relationship("RiotAccount")
+    riot_accounts: List[RiotAccount] = relationship("RiotAccount", overlaps="riot_accounts")
 
     @staticmethod
     def get_promised(session: Session, id: int) -> User:
@@ -41,7 +41,7 @@ class RiotAccount(Base):
     password: str = Column("password", String)
     region: str = Column("region", String)
 
-    riot_id: str = Column("riot_id", String)
+    game_name: str = Column("game_name", String)
 
-    user_id: int = Column(Integer, ForeignKey("users.id"))
-    user = relationship("User", backref="RiotAccount")
+    user_id: int = Column("user_id", Integer, ForeignKey("users.id"))
+    user = relationship("User", backref="RiotAccount", overlaps="riot_accounts")
