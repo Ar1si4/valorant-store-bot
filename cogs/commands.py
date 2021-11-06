@@ -1,5 +1,6 @@
 import asyncio
 import random
+from datetime import timedelta, datetime
 from typing import Union, Callable
 
 import discord
@@ -248,6 +249,16 @@ class CommandsHandler(commands.Cog):
 
     async def register_riot_user_internal(self, to: Union[discord.Member, discord.User]):
         user = User.get_promised(self.bot.database, to.id)
+
+        if user.try_activate_count >= 3:
+            if user.activation_locked_at + timedelta(minutes=10) < datetime.now():
+                user.try_activate_count = 0
+                user.activation_locked_at = None
+            else:
+                await to.send(user.get_text(f"ログインの試行回数上限に達しました。({user.try_activate_count}回)\n10分後に再度お試しください。",
+                                            f"The maximum number of login attempts has been reached. ({user.try_activate_count} times)\nplease try again 10 minutes later,."))
+                return
+
         embed = discord.Embed(title="VALORANT AUTHENTICATION",
                               description=user.get_text("ショップのスキン情報を入手するためには、以下のValorantのアカウント情報が必要です。",
                                                         "The following Valorant account information is required in order to fetch the store skin information."),
@@ -342,10 +353,18 @@ class CommandsHandler(commands.Cog):
             cl.activate()
         except Exception as e:
             self.bot.logger.error(f"failed to login valorant client", exc_info=e)
+            if user.try_activate_count >= 3:
+                user.activation_locked_at = datetime.now()
+                await to.send(user.get_text(f"ログインの試行回数上限に達しました。({user.try_activate_count}回)\n10分後に再度お試しください。",
+                                            f"The maximum number of login attempts has been reached. ({user.try_activate_count} times)\nplease try again 10 minutes later,."))
+                self.bot.database.commit()
+                return
             await to.send(user.get_text(
                 "ログインの情報に誤りがあります。\n再度「登録」コマンドを利用してログイン情報を登録してください。",
                 "Invalid credentials, Please use the [register] command again to register your login information."))
             return
+        user.try_activate_count = 0
+        user.activation_locked_at = None
         name = cl.fetch_player_name()
         riot_account.game_name = f"{name[0]['GameName']}#{name[0]['TagLine']}"
         user.riot_accounts.append(riot_account)
