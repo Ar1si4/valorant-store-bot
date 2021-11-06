@@ -1,21 +1,120 @@
 import asyncio
 import random
-from typing import Union
+from typing import Union, Callable
 
 import discord
 from discord import Interaction
+from discord.embeds import EmptyEmbed
 from discord.ext import commands
 from discord.ext.commands import Context
 
-import valclient
-from client import ValorantStoreBot
-from database import User
+from client import ValorantStoreBot, new_valorant_client_api
+from database import User, Weapon
 from database.user import RiotAccount
 
 
 class CommandsHandler(commands.Cog):
     def __init__(self, bot: ValorantStoreBot):
         self.bot = bot
+
+    async def list_account_and_execute(self, ctx: Context, func: Callable):
+        user = User.get_promised(self.bot.database, ctx.message.author.id)
+
+        view = discord.ui.View(timeout=240)
+        accounts = user.riot_accounts
+        if len(accounts) == 1:
+            await func(view)(type("Interaction", (object,), {
+                "data": {"values": [accounts[0].game_name]}
+            }))
+            return
+        menu = discord.ui.Select(options=[
+            discord.SelectOption(
+                label=account.game_name
+            ) for account in accounts
+        ])
+
+        menu.callback = func(view)
+        view.add_item(menu)
+        await ctx.send(content=user.get_text("実行するアカウント情報を選択してください", "Select the account to execute"),
+                       view=view)
+
+        view_stat = await view.wait()
+        if view_stat:
+            await ctx.send(user.get_text("４分以上応答がないため、登録のプロセスを終了します。",
+                                         "Since there is no response for more than 4 minutes, the registration process is terminated."))
+
+    @commands.command("nightmarket", aliases=["ナイトストア"])
+    async def fetch_night_market(self, ctx: Context):
+        def wrapper(view: discord.ui.View):
+            async def select_account_region(interaction: Interaction):
+                account: RiotAccount = self.bot.database.query(RiotAccount).filter(
+                    RiotAccount.game_name == interaction.data["values"][0]).first()
+                cl = new_valorant_client_api(account.region, account.username, account.password)
+                try:
+                    cl.activate()
+                except Exception as e:
+                    self.bot.logger.error(f"failed to login valorant client", exc_info=e)
+                    await ctx.send(User.get_promised(self.bot.database, ctx.message.author.id).get_text(
+                        "ログイン情報の更新が必要です。パスワードの変更などをした場合にこのメッセージが表示されます。「登録」コマンドを利用してください",
+                        "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command."))
+                    view.stop()
+                    return
+                user = User.get_promised(self.bot.database, ctx.message.author.id)
+                offers = cl.store_fetch_storefront()
+                for offer in offers.get("BonusStore", {}).get("BonusStoreOffers", []):
+                    skin = Weapon.get_promised(self.bot.database, offer["Offer"]["Rewards"][0]["ItemID"], user)
+                    embed = discord.Embed(title=skin.display_name, color=0xff0000,
+                                          url=skin.streamed_video if skin.streamed_video else EmptyEmbed,
+                                          description=user.get_text(
+                                              f'{list(offer["Offer"]["Cost"].values())[0]}→{list(offer["DiscountCosts"].values())[0]}({offer["DiscountPercent"]}%off) ',
+                                              f'{list(offer["Offer"]["Cost"].values())[0]}→{list(offer["DiscountCosts"].values())[0]}({offer["DiscountPercent"]}%off) ') if skin.streamed_video else EmptyEmbed)
+                    embed.set_author(name="valorant shop",
+                                     icon_url="https://pbs.twimg.com/profile_images/1403218724681777152/rcOjWkLv_400x400.jpg")
+                    embed.set_image(url=skin.display_icon)
+                    await ctx.send(embed=embed)
+                    view.stop()
+
+            return select_account_region
+
+        await self.list_account_and_execute(ctx, wrapper)
+
+    @commands.command("shop", aliases=["store", "ショップ", "ストア"])
+    async def fetch_today_shop(self, ctx: Context):
+        def wrapper(view: discord.ui.View):
+            async def select_account_region(interaction: Interaction):
+                account: RiotAccount = self.bot.database.query(RiotAccount).filter(
+                    RiotAccount.game_name == interaction.data["values"][0]).first()
+                cl = new_valorant_client_api(account.region, account.username, account.password)
+                try:
+                    cl.activate()
+                except Exception as e:
+                    self.bot.logger.error(f"failed to login valorant client", exc_info=e)
+                    await ctx.send(User.get_promised(self.bot.database, ctx.message.author.id).get_text(
+                        "ログイン情報の更新が必要です。パスワードの変更などをした場合にこのメッセージが表示されます。「登録」コマンドを利用してください",
+                        "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command."))
+                    view.stop()
+                    return
+                offers = cl.store_fetch_storefront()
+                user = User.get_promised(self.bot.database, ctx.message.author.id)
+                for offer_uuid in offers.get("SkinsPanelLayout", {}).get("SingleItemOffers", []):
+                    skin = Weapon.get_promised(self.bot.database, offer_uuid, user)
+
+                    embed = discord.Embed(title=skin.display_name, color=0xff0000,
+                                          url=skin.streamed_video if skin.streamed_video else EmptyEmbed,
+                                          description=user.get_text("↑から動画が見れます",
+                                                                    "You can watch the video at↑") if skin.streamed_video else EmptyEmbed)
+                    embed.set_author(name="valorant shop",
+                                     icon_url="https://pbs.twimg.com/profile_images/1403218724681777152/rcOjWkLv_400x400.jpg")
+                    embed.set_image(url=skin.display_icon)
+                    await ctx.send(embed=embed)
+                if offers.get("BonusStore") is not None:
+                    await ctx.send(user.get_text("ナイトマーケットが開かれています！\n`nightmarket`, `ナイトストア`コマンドで確認しましょう！",
+                                                 "The night market is open.！\nLet's check it with the command `nightmarket`, `ナイトストア`"))
+                view.stop()
+
+            return select_account_region
+
+        await self.list_account_and_execute(ctx, wrapper)
 
     @commands.command("randommap", aliases=["ランダムマップ"])
     async def random_map(self, ctx: Context):
@@ -148,10 +247,7 @@ class CommandsHandler(commands.Cog):
             return
         riot_account.password = password.content
 
-        cl = valclient.Client(region=riot_account.region, auth={
-            "username": riot_account.username,
-            "password": riot_account.password
-        })
+        cl = new_valorant_client_api(riot_account.region, riot_account.username, riot_account.password)
         try:
             cl.activate()
         except Exception as e:
@@ -160,41 +256,31 @@ class CommandsHandler(commands.Cog):
                 "ログインの情報に誤りがあります。\n再度「登録」コマンドを利用してログイン情報を登録してください。",
                 "Invalid credentials, Please use the [register] command again to register your login information."))
             return
-        name = cl.put(endpoint="/name-service/v2/players", json_data=[cl.puuid])
+        name = cl.fetch_player_name()
         riot_account.game_name = f"{name[0]['GameName']}#{name[0]['TagLine']}"
         user.riot_accounts.append(riot_account)
         self.bot.database.commit()
-        await to.send(
-            f"ログイン情報の入力が完了しました。\n{name[0]['GameName']}#{name[0]['TagLine']}\n今後パスワードを変更した場合や、サブアカウントで使用したい場合などは「登録」コマンドを利用することで更新ができます。")
+        await to.send(user.get_text(
+            f"ログイン情報の入力が完了しました。\n{name[0]['GameName']}#{name[0]['TagLine']}",
+            f"Your login information has been entered.\n{name[0]['GameName']}#{name[0]['TagLine']}"
+        ))
 
     @commands.command("unregister", aliases=["登録解除"])
     async def unregister_riot_account(self, ctx: Context):
         user = User.get_promised(self.bot.database, ctx.message.author.id)
 
-        view = discord.ui.View(timeout=240)
-        menu = discord.ui.Select(options=[
-            discord.SelectOption(
-                label=account.game_name
-            ) for account in user.riot_accounts
-        ])
+        def wrapper(view: discord.ui.View):
+            async def select_account_region(interaction: Interaction):
+                account = self.bot.database.query(RiotAccount).filter(
+                    RiotAccount.game_name == interaction.data["values"][0]).first()
+                self.bot.database.delete(account)
+                self.bot.database.commit()
+                view.stop()
+                await ctx.send(user.get_text("完了しました", "Done"))
 
-        async def select_account_region(interaction: Interaction):
-            account = self.bot.database.query(RiotAccount).filter(
-                RiotAccount.game_name == interaction.data["values"][0]).first()
-            self.bot.database.delete(account)
-            self.bot.database.commit()
-            view.stop()
+            return select_account_region
 
-        menu.callback = select_account_region
-        view.add_item(menu)
-        await ctx.send(content=user.get_text("削除するアカウント情報を選択してください", "Select the account information to be delete"),
-                       view=view)
-
-        view_stat = await view.wait()
-        if view_stat:
-            await ctx.send(user.get_text("４分以上応答がないため、登録のプロセスを終了します。",
-                                         "Since there is no response for more than 4 minutes, the registration process is terminated."))
-        await ctx.send(user.get_text("完了しました", "Done"))
+        await self.list_account_and_execute(ctx, wrapper)
 
 
 def setup(bot: ValorantStoreBot):
