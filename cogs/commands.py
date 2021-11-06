@@ -131,7 +131,6 @@ class CommandsHandler(commands.Cog):
                                         "Since there is no response for more than 4 minutes, the registration process is terminated."))
             return
         riot_account.username = username.content
-        print(user.riot_accounts)
         for account in user.riot_accounts:
             if account.username == riot_account.username:
                 await to.send(
@@ -167,6 +166,35 @@ class CommandsHandler(commands.Cog):
         self.bot.database.commit()
         await to.send(
             f"ログイン情報の入力が完了しました。\n{name[0]['GameName']}#{name[0]['TagLine']}\n今後パスワードを変更した場合や、サブアカウントで使用したい場合などは「登録」コマンドを利用することで更新ができます。")
+
+    @commands.command("unregister", aliases=["登録解除"])
+    async def unregister_riot_account(self, ctx: Context):
+        user = User.get_promised(self.bot.database, ctx.message.author.id)
+
+        view = discord.ui.View(timeout=240)
+        menu = discord.ui.Select(options=[
+            discord.SelectOption(
+                label=account.game_name
+            ) for account in user.riot_accounts
+        ])
+
+        async def select_account_region(interaction: Interaction):
+            account = self.bot.database.query(RiotAccount).filter(
+                RiotAccount.game_name == interaction.data["values"][0]).first()
+            self.bot.database.delete(account)
+            self.bot.database.commit()
+            view.stop()
+
+        menu.callback = select_account_region
+        view.add_item(menu)
+        await ctx.send(content=user.get_text("削除するアカウント情報を選択してください", "Select the account information to be delete"),
+                       view=view)
+
+        view_stat = await view.wait()
+        if view_stat:
+            await ctx.send(user.get_text("４分以上応答がないため、登録のプロセスを終了します。",
+                                         "Since there is no response for more than 4 minutes, the registration process is terminated."))
+        await ctx.send(user.get_text("完了しました", "Done"))
 
 
 def setup(bot: ValorantStoreBot):
