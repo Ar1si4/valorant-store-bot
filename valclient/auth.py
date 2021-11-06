@@ -1,9 +1,10 @@
 import requests
 import re
 
+
 class Auth:
 
-    def __init__(self,auth):
+    def __init__(self, auth):
         self.username = auth['username']
         self.password = auth['password']
 
@@ -24,8 +25,9 @@ class Auth:
             'password': self.password
         }
         r = session.put('https://auth.riotgames.com/api/v1/authorization', json=data)
-        pattern = re.compile('access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)')
-        data = pattern.findall(r.json()['response']['parameters']['uri'])[0] 
+        pattern = re.compile(
+            'access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)')
+        data = pattern.findall(r.json()['response']['parameters']['uri'])[0]
         access_token = data[0]
         # print('Access Token: ' + access_token)
 
@@ -41,4 +43,6 @@ class Auth:
         # print('User ID: ' + user_id)
         headers['X-Riot-Entitlements-JWT'] = entitlements_token
         session.close()
+
+        headers["X-Riot-ClientPlatform"] = "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9"
         return user_id, headers, {}
