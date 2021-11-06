@@ -323,8 +323,8 @@ class CommandsHandler(commands.Cog):
         for account in user.riot_accounts:
             if account.username == riot_account.username:
                 await to.send(
-                    user.get_text("このユーザーIDはすでにあなたのアカウントに登録されています。\n削除する場合は[登録解除]コマンドを利用してください",
-                                  "This user ID has already been registered in your account.\nTo delete, use the [unregister] command.")
+                    user.get_text("このユーザーIDはすでにあなたのアカウントに登録されています。\n削除/再登録する場合は[登録解除]コマンドを利用してください",
+                                  "This user ID has already been registered in your account.\nTo delete/reregister, use the [unregister] command.")
                 )
                 return
 
