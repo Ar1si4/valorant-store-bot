@@ -22,6 +22,9 @@ class CommandsHandler(commands.Cog):
 
         view = discord.ui.View(timeout=240)
         accounts = user.riot_accounts
+        if len(accounts) == 0:
+            await ctx.send(user.get_text("アカウント情報が登録されていません\n[登録]コマンドを利用して登録してください","Your account information has not been registered yet \nAdd your account information using the [register] command."))
+            return
         if len(accounts) == 1:
             async def noop(*args, **kwargs): ...
 
