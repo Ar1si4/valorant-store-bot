@@ -50,6 +50,36 @@ class CommandsHandler(commands.Cog):
             await ctx.send(user.get_text("４分以上応答がないため、登録のプロセスを終了します。",
                                          "Since there is no response for more than 4 minutes, the registration process is terminated."))
 
+    @commands.command("rank")
+    async def get_account_rank(self, ctx: Context):
+        user = User.get_promised(self.bot.database, ctx.message.author.id)
+
+        def wrapper(view: discord.ui.View):
+            async def select_account_region(interaction: Interaction):
+                await interaction.response.send_message("実行中...")
+                account: RiotAccount = self.bot.database.query(RiotAccount).filter(
+                    RiotAccount.game_name == interaction.data["values"][0]).first()
+                cl = new_valorant_client_api(account.region, account.username, account.password)
+                try:
+                    cl.activate()
+                except Exception as e:
+                    self.bot.logger.error(f"failed to login valorant client", exc_info=e)
+                    await ctx.send(User.get_promised(self.bot.database, ctx.message.author.id).get_text(
+                        "ログイン情報の更新が必要です。パスワードの変更などをした場合にこのメッセージが表示されます。「登録」コマンドを利用してください",
+                        "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command."))
+                    view.stop()
+                    return
+                tier_to_name = ["UNRANKED", "Unused1", "Unused2", "IRON 1", "IRON 2", "IRON 3", "BRONZE 1",
+                                "BRONZE 2", "BRONZE 3", "SILVER 1", "SILVER 2", "SILVER 3", "GOLD 1", "GOLD 2",
+                                "GOLD 3", "PLATINUM 1", "PLATINUM 2", "PLATINUM 3", "DIAMOND 1", "DIAMOND 2",
+                                "DIAMOND 3", "IMMORTAL 1", "IMMORTAL 2", "IMMORTAL 3", "RADIANT"]
+                tier = cl.fetch_competitive_updates()["Matches"][0]["TierAfterUpdate"]
+                await ctx.send(tier_to_name[tier])
+
+            return select_account_region
+
+        await self.list_account_and_execute(ctx, wrapper)
+
     @commands.command("list")
     async def list_accounts(self, ctx: Context):
         user = User.get_promised(self.bot.database, ctx.message.author.id)
