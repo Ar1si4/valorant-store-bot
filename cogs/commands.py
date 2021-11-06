@@ -23,7 +23,8 @@ class CommandsHandler(commands.Cog):
         view = discord.ui.View(timeout=240)
         accounts = user.riot_accounts
         if len(accounts) == 0:
-            await ctx.send(user.get_text("アカウント情報が登録されていません\n[登録]コマンドを利用して登録してください","Your account information has not been registered yet \nAdd your account information using the [register] command."))
+            await ctx.send(user.get_text("アカウント情報が登録されていません\n[登録]コマンドを利用して登録してください",
+                                         "Your account information has not been registered yet \nAdd your account information using the [register] command."))
             return
         if len(accounts) == 1:
             async def noop(*args, **kwargs): ...
@@ -180,7 +181,7 @@ class CommandsHandler(commands.Cog):
     @commands.command("register", aliases=["登録"])
     async def register_riot_account(self, ctx: Context):
         user = User.get_promised(self.bot.database, ctx.message.author.id)
-        if ctx.message.author.dm_channel is None or ctx.channel.id != ctx.message.author.dm_channel.id:
+        if not isinstance(ctx.message.channel, discord.channel.DMChannel) or ctx.message.author == self.bot.user:
             await ctx.send(user.get_text("ログイン情報の登録が必要です。\n個人チャットで登録を進めてください",
                                          "You need to register your login information. Please proceed to register in \n personal chat"))
         await self.register_riot_user_internal(ctx.message.author)
@@ -289,14 +290,23 @@ class CommandsHandler(commands.Cog):
         riot_account.game_name = f"{name[0]['GameName']}#{name[0]['TagLine']}"
         user.riot_accounts.append(riot_account)
         self.bot.database.commit()
+        tier_to_name = ["UNRANKED", "Unused1", "Unused2", "IRON 1", "IRON 2", "IRON 3", "BRONZE 1",
+                        "BRONZE 2", "BRONZE 3", "SILVER 1", "SILVER 2", "SILVER 3", "GOLD 1", "GOLD 2",
+                        "GOLD 3", "PLATINUM 1", "PLATINUM 2", "PLATINUM 3", "DIAMOND 1", "DIAMOND 2",
+                        "DIAMOND 3", "IMMORTAL 1", "IMMORTAL 2", "IMMORTAL 3", "RADIANT"]
+        tier = cl.fetch_competitive_updates()["Matches"][0]["TierAfterUpdate"]
         await to.send(user.get_text(
-            f"ログイン情報の入力が完了しました。\n{name[0]['GameName']}#{name[0]['TagLine']}",
-            f"Your login information has been entered.\n{name[0]['GameName']}#{name[0]['TagLine']}"
+            f"ログイン情報の入力が完了しました。\n{name[0]['GameName']}#{name[0]['TagLine']}\nRANK: {tier_to_name[tier]}",
+            f"Your login information has been entered.\n{name[0]['GameName']}#{name[0]['TagLine']}\nRANK: {tier_to_name[tier]}"
         ))
 
     @commands.command("unregister", aliases=["登録解除"])
     async def unregister_riot_account(self, ctx: Context):
         user = User.get_promised(self.bot.database, ctx.message.author.id)
+
+        if not isinstance(ctx.message.channel, discord.channel.DMChannel) or ctx.message.author == self.bot.user:
+            await ctx.send(user.get_text("この動作は個人チャットでする必要があります。", "This action needs to be done in private chat"))
+            return
 
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
@@ -306,7 +316,7 @@ class CommandsHandler(commands.Cog):
                 self.bot.database.delete(account)
                 self.bot.database.commit()
                 view.stop()
-                await ctx.send(user.get_text("完了しました", "Done"))
+                await ctx.send(user.get_text(f"{account.username}: 完了しました", f"{account.username}: Done"))
 
             return select_account_region
 
