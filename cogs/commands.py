@@ -13,6 +13,15 @@ class CommandsHandler(commands.Cog):
     def __init__(self, bot: ValorantStoreBot):
         self.bot = bot
 
+    @commands.command("randommap", aliases=["ランダムマップ"])
+    async def random_map(self, ctx: Context):
+        user = User.get_promised(self.bot.database, ctx.message.author.id)
+        if user.language == "ja-JP":
+            maps = ["アセント", "スプリット", "バインド", "ブリーズ", "アイスボックス", "ヘイブン", "フラクチャー"]
+        else:
+            maps = ["Icebox", "Breeze", "Ascent", "Haven", "Split", "Bind", "Fracture"]
+        await ctx.send(random.choice(maps))
+
     @commands.command("language", aliases=["言語"])
     async def change_language(self, ctx: Context):
         view = discord.ui.View(timeout=0.5)
