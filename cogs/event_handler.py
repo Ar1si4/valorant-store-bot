@@ -22,7 +22,7 @@ class EventHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
-        database.guild.Guild.get_promised(self.bot.database, guild.id)
+        database.Guild.get_promised(self.bot.database, guild.id)
 
         for channel in guild.text_channels:
             if channel.permissions_for(guild.me).send_messages:
