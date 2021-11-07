@@ -73,7 +73,6 @@ class CommandsHandler(commands.Cog):
 
     @commands.command("rank")
     async def get_account_rank(self, ctx: Context):
-        user = User.get_promised(self.bot.database, ctx.message.author.id)
 
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
@@ -118,6 +117,16 @@ class CommandsHandler(commands.Cog):
         await self.unregister_riot_account(ctx)
         await self.register_riot_user_internal(ctx.message.author)
 
+    async def _execute_shop_command_on_allowed_channel(self, ctx: Context, wrapper: Callable):
+        if isinstance(ctx.message.channel, discord.channel.DMChannel) and ctx.message.author != self.bot.user:
+            await self.list_account_and_execute(ctx, wrapper)
+            return
+
+        guild = Guild.get_promised(self.bot.database, ctx.guild.id)
+        if guild.response_here != "" and ctx.channel.id != guild.response_here:
+            return
+        await self.list_account_and_execute(ctx, wrapper)
+
     @commands.command("nightmarket", aliases=["ナイトストア"])
     async def fetch_night_market(self, ctx: Context):
         def wrapper(view: discord.ui.View):
@@ -152,14 +161,7 @@ class CommandsHandler(commands.Cog):
 
             return select_account_region
 
-        if isinstance(ctx.message.channel, discord.channel.DMChannel) and ctx.message.author != self.bot.user:
-            await self.list_account_and_execute(ctx, wrapper)
-            return
-
-        guild = Guild.get_promised(self.bot.database, ctx.guild.id)
-        if guild.response_here != "" and ctx.channel.id != guild.response_here:
-            return
-        await self.list_account_and_execute(ctx, wrapper)
+        await self._execute_shop_command_on_allowed_channel(ctx, wrapper)
 
     @commands.command("shop", aliases=["store", "ショップ", "ストア"])
     async def fetch_today_shop(self, ctx: Context):
@@ -198,14 +200,7 @@ class CommandsHandler(commands.Cog):
 
             return select_account_region
 
-        if isinstance(ctx.message.channel, discord.channel.DMChannel) and ctx.message.author != self.bot.user:
-            await self.list_account_and_execute(ctx, wrapper)
-            return
-
-        guild = Guild.get_promised(self.bot.database, ctx.guild.id)
-        if guild.response_here != "" and ctx.channel.id != guild.response_here:
-            return
-        await self.list_account_and_execute(ctx, wrapper)
+        await self._execute_shop_command_on_allowed_channel(ctx, wrapper)
 
     @commands.command("randommap", aliases=["ランダムマップ"])
     async def random_map(self, ctx: Context):
