@@ -29,7 +29,7 @@ class EventHandler(commands.Cog):
                 embed = discord.Embed(
                     description="初めまして、私はValorantのショップにある毎日ローテする４つのスキンをコマンド一つで表示するためのBOTです！ \nいちいちログインして確認するのがめんどくさいので作りました。 \nstore, shop, ショップ 等のコマンドを入力することで取得することができます。 \n勿論、個人チャットでも使用可能です",
                     color=0xff0000)
-                embed.set_author(name="Valorant store bot", url="https://valorant.sakura.rip",
+                embed.set_author(name="Valorant store bot", url="http://valorant.sakura.rip",
                                  icon_url="https://pbs.twimg.com/profile_images/1403218724681777152/rcOjWkLv_400x400.jpg")
                 embed.set_thumbnail(url="https://pbs.twimg.com/profile_images/1403218724681777152/rcOjWkLv_400x400.jpg")
 

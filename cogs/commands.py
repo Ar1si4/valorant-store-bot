@@ -144,8 +144,8 @@ class CommandsHandler(commands.Cog):
                 offers = cl.store_fetch_storefront()
                 if len(offers.get("BonusStore", {})) == 0:
                     await ctx.send(user.get_text(
-                        "ショップの内容が見つかりませんでした。Valorantがメンテナンス中もしくは何かの障害の可能性があります。\nそのどちらでもない場合は開発者までご連絡ください。\nhttps://valorant.sakura.rip",
-                        "The contents of the store could not be found, Valorant may be under maintenance or there may be some kind of fault. \nIf it is neither of those, please contact the developer.: \nhttps://valorant.sakura.rip"))
+                        "ショップの内容が見つかりませんでした。Valorantがメンテナンス中もしくは何かの障害の可能性があります。\nそのどちらでもない場合は開発者までご連絡ください。\nhttp://valorant.sakura.rip",
+                        "The contents of the store could not be found, Valorant may be under maintenance or there may be some kind of fault. \nIf it is neither of those, please contact the developer.: \nhttp://valorant.sakura.rip"))
 
                 for offer in offers.get("BonusStore", {}).get("BonusStoreOffers", []):
                     skin = Weapon.get_promised(self.bot.database, offer["Offer"]["Rewards"][0]["ItemID"], user)
@@ -185,8 +185,8 @@ class CommandsHandler(commands.Cog):
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
                 if len(offers.get("SkinsPanelLayout", {}).get("SingleItemOffers", [])) == 0:
                     await ctx.send(user.get_text(
-                        "ショップの内容が見つかりませんでした。Valorantがメンテナンス中もしくは何かの障害の可能性があります。\nそのどちらでもない場合は開発者までご連絡ください。\nhttps://valorant.sakura.rip",
-                        "The contents of the store could not be found, Valorant may be under maintenance or there may be some kind of fault. \nIf it is neither of those, please contact the developer.: \nhttps://valorant.sakura.rip"))
+                        "ショップの内容が見つかりませんでした。Valorantがメンテナンス中もしくは何かの障害の可能性があります。\nそのどちらでもない場合は開発者までご連絡ください。\nhttp://valorant.sakura.rip",
+                        "The contents of the store could not be found, Valorant may be under maintenance or there may be some kind of fault. \nIf it is neither of those, please contact the developer.: \nhttp://valorant.sakura.rip"))
 
                 for offer_uuid in offers.get("SkinsPanelLayout", {}).get("SingleItemOffers", []):
                     skin = Weapon.get_promised(self.bot.database, offer_uuid, user)
