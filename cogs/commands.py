@@ -45,11 +45,7 @@ class CommandsHandler(commands.Cog):
         view.add_item(menu)
         await ctx.send(content=user.get_text("実行するアカウント情報を選択してください", "Select the account to execute"),
                        view=view)
-
-        view_stat = await view.wait()
-        if view_stat:
-            await ctx.send(user.get_text("４分以上応答がないため、登録のプロセスを終了します。",
-                                         "Since there is no response for more than 4 minutes, the registration process is terminated."))
+        await view.wait()
 
     @commands.command("onlyhere")
     @commands.has_permissions(administrator=True)
@@ -324,16 +320,12 @@ class CommandsHandler(commands.Cog):
 
         view_stat = await view.wait()
         if view_stat:
-            await to.send(user.get_text("４分以上応答がないため、登録のプロセスを終了します。",
-                                        "Since there is no response for more than 4 minutes, the registration process is terminated."))
-
+            return
         await to.send(user.get_text("ユーザー名を送信してください。", "Submit your user id"))
 
         try:
             username = await self.bot.wait_for("message", check=check_is_private_message, timeout=240)
         except asyncio.TimeoutError:
-            await to.send(user.get_text("４分以上応答がないため、登録のプロセスを終了します。",
-                                        "Since there is no response for more than 4 minutes, the registration process is terminated."))
             return
         riot_account.username = username.content
         for account in user.riot_accounts:
@@ -348,8 +340,6 @@ class CommandsHandler(commands.Cog):
         try:
             password = await self.bot.wait_for("message", check=check_is_private_message, timeout=240)
         except asyncio.TimeoutError:
-            await to.send(user.get_text("４分以上応答がないため、登録のプロセスを終了します。",
-                                        "Since there is no response for more than 4 minutes, the registration process is terminated."))
             return
         riot_account.password = password.content
         await to.send(user.get_text("確認中です...", "checking...."))
