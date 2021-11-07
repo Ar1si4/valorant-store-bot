@@ -266,6 +266,11 @@ class CommandsHandler(commands.Cog):
             await ctx.send(user.get_text("ログイン情報の登録が必要です。\n個人チャットで登録を進めてください",
                                          "You need to register your login information. Please proceed to register in \n personal chat"))
         if user.is_premium:
+            if len(user.riot_accounts) > 10:
+                await ctx.send(user.get_text("登録可能なアカウント数上限は１０です。",
+                                             "The maximum number of accounts that can be registered is 10."))
+                return
+        else:
             if len(user.riot_accounts) > 1:
                 await ctx.send(user.get_text("""すでに1アカウントの情報が登録されています。
 複数アカウントの登録はプレミアムユーザーのみ可能です。
@@ -275,10 +280,6 @@ Multiple accounts can be registered only by premium users.
 If you want to update the information of an already registered account, please use the `update` command
 Use the `premium` or `プレミアム` commands to get the details of premium users
 """))
-                return
-        else:
-            if len(user.riot_accounts) > 10:
-                await ctx.send(user.get_text("登録可能なアカウント数上限は１０です。", "The maximum number of accounts that can be registered is 10."))
                 return
 
         await self.register_riot_user_internal(ctx.message.author)
