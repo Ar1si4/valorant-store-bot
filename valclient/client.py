@@ -1,25 +1,21 @@
 # module imports
-import requests
-import os
 import base64
-from requests.models import DEFAULT_REDIRECT_LIMIT
-import urllib3
 import json
-from typing import Union
+import os
 
-# imports for modules used in the package
-from .resources import regions
-from .resources import region_shard_override, shard_region_override
-from .resources import base_endpoint
-from .resources import base_endpoint_glz
-from .resources import base_endpoint_local
-from .resources import base_endpoint_shared
-from .resources import queues
+import requests
+import urllib3
 
 from .auth import Auth
-
 # exceptions
 from .exceptions import ResponseError, HandshakeError, LockfileError, PhaseError
+from .resources import base_endpoint
+from .resources import base_endpoint_glz
+from .resources import base_endpoint_shared
+from .resources import queues
+from .resources import region_shard_override, shard_region_override
+# imports for modules used in the package
+from .resources import regions
 
 # disable urllib3 warnings that might arise from making requests to 127.0.0.1
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -69,18 +65,18 @@ class Client:
 
     def activate(self) -> None:
         '''Activate the client and get authorization'''
-        try:
-            if self.auth is None:
+        if self.auth is None:
+            try:
                 self.lockfile = self.__get_lockfile()
                 self.puuid, self.headers, self.local_headers = self.__get_headers()
-
+            except:
+                raise HandshakeError("Unable to activate; is VALORANT running?")
+            else:
                 session = self.rnet_fetch_chat_session()
                 self.player_name = session["game_name"]
                 self.player_tag = session["game_tag"]
-            else:
-                self.puuid, self.headers, self.local_headers = self.auth.authenticate()
-        except:
-            raise HandshakeError("Unable to activate; is VALORANT running?")
+                return
+        self.puuid, self.headers, self.local_headers = self.auth.authenticate()
 
     @staticmethod
     def fetch_regions() -> list:

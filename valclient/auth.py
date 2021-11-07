@@ -2,6 +2,9 @@ import requests
 import re
 
 
+class InvalidCredentialError(Exception): ...
+
+
 class Auth:
 
     def __init__(self, auth, proxy):
@@ -29,7 +32,10 @@ class Auth:
         r = session.put('https://auth.riotgames.com/api/v1/authorization', json=data)
         pattern = re.compile(
             'access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)')
-        data = pattern.findall(r.json()['response']['parameters']['uri'])[0]
+        try:
+            data = pattern.findall(r.json()['response']['parameters']['uri'])[0]
+        except KeyError:
+            raise InvalidCredentialError(f"invalid credential")
         access_token = data[0]
         # print('Access Token: ' + access_token)
 
@@ -46,5 +52,6 @@ class Auth:
         headers['X-Riot-Entitlements-JWT'] = entitlements_token
         session.close()
 
-        headers["X-Riot-ClientPlatform"] = "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9"
+        headers[
+            "X-Riot-ClientPlatform"] = "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9"
         return user_id, headers, {}
