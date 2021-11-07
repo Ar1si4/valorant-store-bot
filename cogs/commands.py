@@ -347,7 +347,7 @@ class CommandsHandler(commands.Cog):
                                         "Since there is no response for more than 4 minutes, the registration process is terminated."))
             return
         riot_account.password = password.content
-
+        await to.send(user.get_text("確認中です...", "checking...."))
         cl = new_valorant_client_api(riot_account.region, riot_account.username, riot_account.password)
         try:
             cl.activate()
