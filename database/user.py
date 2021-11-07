@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime
 from typing import List
 
-from sqlalchemy import Column, Integer, String, ForeignKey, DATETIME
+from sqlalchemy import Column, Integer, String, ForeignKey, DATETIME, Boolean
 from sqlalchemy.orm import Session, relationship
 
 from .setting import Base
@@ -17,6 +17,8 @@ class User(Base):
 
     try_activate_count: int = Column("try_activate_count", Integer, default=0)
     activation_locked_at: datetime.datetime = Column("activation_locked_at", DATETIME)
+
+    is_premium: bool = Column("is_premium", Boolean, default=False)
 
     riot_accounts: List[RiotAccount] = relationship("RiotAccount", backref="users")
 
