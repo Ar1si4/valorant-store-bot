@@ -244,17 +244,33 @@ class CommandsHandler(commands.Cog):
     async def get_premium_details(self, ctx: Context):
         user = User.get_promised(self.bot.database, ctx.message.author.id)
         embed = discord.Embed(title=user.get_text("プレミアムユーザーの詳細", "Premium User Details"),
-                              description=user.get_text("Valorant store botの利用者は、プレミアムユーザーになることで以下の特典を得ることができます", "Users of the Valorant store bot can get the following benefits by becoming a premium user"), color=0x800000)
+                              description=user.get_text("Valorant store botの利用者は、プレミアムユーザーになることで以下の特典を得ることができます",
+                                                        "Users of the Valorant store bot can get the following benefits by becoming a premium user"),
+                              color=0x800000)
         embed.set_author(name="valorant store bot", url="http://valorant.sakura.rip",
                          icon_url="https://pbs.twimg.com/profile_images/1403218724681777152/rcOjWkLv_400x400.jpg")
-        embed.add_field(name=user.get_text("〇登録アカウント上限の解放", "〇Release of the maximum number of registered accounts"), value=user.get_text("１アカウントの登録上限が10アカウントまで登録できるようになります", "The registration limit for one account will be increased to 10 accounts."), inline=False)
-        embed.add_field(name=user.get_text("〇取得制限時間の短縮", "〇Reduction of acquisition time limit"), value=user.get_text("通常では3時間の制限が10分になります", "The normal three-hour limit will be 10 minutes."), inline=False)
-        embed.add_field(name=user.get_text("〇ユーザー体験の向上", "〇Improving the user experience"),
-                        value=user.get_text("これまで、登録情報の更新が必要などのエラーメッセージが表示されることがありましたが、それぞれのアカウントに個別のプロキシを利用することでそれの出る確率が下がります。(このエラーはプロキシの数に対してユーザー数が多すぎたことが原因でした", "It used to show error messages such as registration information needs to be updated, but by using a separate proxy for each account, the probability of that appearing is reduced. (This error was caused by the number of users being too large for the number of proxies."),
+        embed.add_field(name=user.get_text("〇登録アカウント上限の解放", "〇Release of the maximum number of registered accounts"),
+                        value=user.get_text("１アカウントの登録上限が10アカウントまで登録できるようになります",
+                                            "The registration limit for one account will be increased to 10 accounts."),
                         inline=False)
-        embed.add_field(name=user.get_text("〇指定した時間にストア内容を自動送信", "〇Automatically send the store contents at the specified time."), value=user.get_text("毎朝8時等、指定した時間に今日のストアの内容が自動で送られます", "The contents of today's store will be automatically sent to you at the time you specify, such as 8:00 a.m. every morning."), inline=False)
-        embed.add_field(name=user.get_text("〇その他機能への早期アクセス", "〇Early access to other functions"), value=user.get_text("開発中の機能などへの早期アクセスが可能です", "Early access to features under development, etc."), inline=False)
-        embed.set_footer(text=user.get_text("お問い合わせは、Twitter ID @ch31212yのDMまでお願いします。", "For inquiries, please DM us at Twitter ID @ch31212y."))
+        embed.add_field(name=user.get_text("〇取得制限時間の短縮", "〇Reduction of acquisition time limit"),
+                        value=user.get_text("通常では3時間の制限が10分になります", "The normal three-hour limit will be 10 minutes."),
+                        inline=False)
+        embed.add_field(name=user.get_text("〇ユーザー体験の向上", "〇Improving the user experience"),
+                        value=user.get_text(
+                            "これまで、登録情報の更新が必要などのエラーメッセージが表示されることがありましたが、それぞれのアカウントに個別のプロキシを利用することでそれの出る確率が下がります。(このエラーはプロキシの数に対してユーザー数が多すぎたことが原因でした",
+                            "It used to show error messages such as registration information needs to be updated, but by using a separate proxy for each account, the probability of that appearing is reduced. (This error was caused by the number of users being too large for the number of proxies."),
+                        inline=False)
+        embed.add_field(
+            name=user.get_text("〇指定した時間にストア内容を自動送信", "〇Automatically send the store contents at the specified time."),
+            value=user.get_text("毎朝8時等、指定した時間に今日のストアの内容が自動で送られます",
+                                "The contents of today's store will be automatically sent to you at the time you specify, such as 8:00 a.m. every morning."),
+            inline=False)
+        embed.add_field(name=user.get_text("〇その他機能への早期アクセス", "〇Early access to other functions"),
+                        value=user.get_text("開発中の機能などへの早期アクセスが可能です",
+                                            "Early access to features under development, etc."), inline=False)
+        embed.set_footer(text=user.get_text("お問い合わせは、Twitter ID @ch31212yのDMまでお願いします。",
+                                            "For inquiries, please DM us at Twitter ID @ch31212y."))
         await ctx.send(embed=embed)
         if user.is_premium:
             await ctx.send(user.get_text("おめでとうございます！。あなたはプレミアムユーザーです", "Congratulations! You are a premium user!"))
