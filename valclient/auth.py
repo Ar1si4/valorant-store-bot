@@ -4,12 +4,14 @@ import re
 
 class Auth:
 
-    def __init__(self, auth):
+    def __init__(self, auth, proxy):
+        self.proxy = proxy
         self.username = auth['username']
         self.password = auth['password']
 
     def authenticate(self):
         session = requests.session()
+        session.proxies = self.proxy
         data = {
             'client_id': 'play-valorant-web-prod',
             'nonce': '1',

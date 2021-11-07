@@ -27,7 +27,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class Client:
 
-    def __init__(self, region="na", auth=None):
+    def __init__(self, region="na", auth=None, proxy=None):
         '''
         NOTE: when using manual auth, local endpoints will not be available
         auth format:
@@ -40,6 +40,7 @@ class Client:
             self.lockfile_path = os.path.join(
                 os.getenv('LOCALAPPDATA'), R'Riot Games\Riot Client\Config\lockfile')
 
+        self.proxy = proxy
         self.puuid = ""
         self.player_name = ""
         self.player_tag = ""
@@ -52,7 +53,7 @@ class Client:
         self.client_platform = "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9"
 
         if auth is not None:
-            self.auth = Auth(auth)
+            self.auth = Auth(auth, proxy)
 
         if region in regions:
             self.region = region
@@ -97,7 +98,7 @@ class Client:
         if endpoint_type in ["pd", "glz", "shared"]:
             response = requests.get(
                 f'{self.base_url_glz if endpoint_type == "glz" else self.base_url if endpoint_type == "pd" else self.base_url_shared if endpoint_type == "shared" else self.base_url}{endpoint}',
-                headers=self.headers)
+                headers=self.headers, proxies=self.proxy)
 
             # custom exceptions for http status codes
             self.__verify_status_code(response.status_code, exceptions)
@@ -139,7 +140,7 @@ class Client:
     def post(self, endpoint="/", endpoint_type="pd", json_data={}, exceptions={}) -> dict:
         '''Post data to a pd/glz endpoint'''
         response = requests.post(f'{self.base_url_glz if endpoint_type == "glz" else self.base_url}{endpoint}',
-                                 headers=self.headers, json=json_data)
+                                 headers=self.headers, json=json_data, proxies=self.proxy)
 
         # custom exceptions for http status codes
         self.__verify_status_code(response.status_code, exceptions)
@@ -153,7 +154,7 @@ class Client:
 
     def put(self, endpoint="/", endpoint_type="pd", json_data={}, exceptions={}) -> dict:
         response = requests.put(f'{self.base_url_glz if endpoint_type == "glz" else self.base_url}{endpoint}',
-                                headers=self.headers, data=json.dumps(json_data))
+                                headers=self.headers, data=json.dumps(json_data), proxies=self.proxy)
         data = json.loads(response.text)
 
         # custom exceptions for http status codes
@@ -166,7 +167,7 @@ class Client:
 
     def delete(self, endpoint="/", endpoint_type="pd", json_data={}, exceptions={}) -> dict:
         response = requests.delete(f'{self.base_url_glz if endpoint_type == "glz" else self.base_url}{endpoint}',
-                                   headers=self.headers, data=json.dumps(json_data))
+                                   headers=self.headers, data=json.dumps(json_data), proxies=self.proxy)
         data = json.loads(response.text)
 
         # custom exceptions for http status codes
