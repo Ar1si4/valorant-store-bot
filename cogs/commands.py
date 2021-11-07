@@ -100,7 +100,7 @@ class CommandsHandler(commands.Cog):
             return
         await ctx.send("\n".join([account.game_name for account in user.riot_accounts]))
 
-    @commands.command("update")
+    @commands.command("update", aliases=["登録更新"])
     async def update_account(self, ctx: Context):
         user = User.get_promised(self.bot.database, ctx.message.author.id)
         if not isinstance(ctx.message.channel, discord.channel.DMChannel) or ctx.message.author == self.bot.user:
