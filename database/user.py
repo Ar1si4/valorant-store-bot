@@ -13,7 +13,7 @@ class User(Base):
     __tablename__ = "users"
 
     id: int = Column("id", Integer, primary_key=True)
-    language: str = Column("language", String)
+    language: str = Column("language", String, default="ja-JP")
 
     try_activate_count: int = Column("try_activate_count", Integer, default=0)
     activation_locked_at: datetime.datetime = Column("activation_locked_at", DATETIME)
