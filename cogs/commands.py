@@ -146,6 +146,9 @@ class CommandsHandler(commands.Cog):
                     return
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
                 offers = cl.store_fetch_storefront()
+                if len(offers.get("BonusStore", {})) == 0:
+                    await ctx.send(user.get_text("ショップの内容が見つかりませんでした。Valorantがメンテナンス中もしくは何かの障害の可能性があります。\nそのどちらでもない場合は開発者までご連絡ください。\nhttps://valorant.sakura.rip", "The contents of the store could not be found, Valorant may be under maintenance or there may be some kind of fault. \nIf it is neither of those, please contact the developer.: \nhttps://valorant.sakura.rip"))
+
                 for offer in offers.get("BonusStore", {}).get("BonusStoreOffers", []):
                     skin = Weapon.get_promised(self.bot.database, offer["Offer"]["Rewards"][0]["ItemID"], user)
                     embed = discord.Embed(title=skin.display_name, color=0xff0000,
@@ -182,6 +185,9 @@ class CommandsHandler(commands.Cog):
                     return
                 offers = cl.store_fetch_storefront()
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
+                if len(offers.get("SkinsPanelLayout", {}).get("SingleItemOffers", [])) == 0:
+                    await ctx.send(user.get_text("ショップの内容が見つかりませんでした。Valorantがメンテナンス中もしくは何かの障害の可能性があります。\nそのどちらでもない場合は開発者までご連絡ください。\nhttps://valorant.sakura.rip", "The contents of the store could not be found, Valorant may be under maintenance or there may be some kind of fault. \nIf it is neither of those, please contact the developer.: \nhttps://valorant.sakura.rip"))
+
                 for offer_uuid in offers.get("SkinsPanelLayout", {}).get("SingleItemOffers", []):
                     skin = Weapon.get_promised(self.bot.database, offer_uuid, user)
 
