@@ -349,6 +349,7 @@ class CommandsHandler(commands.Cog):
             return
         riot_account.password = password.content
         await to.send(user.get_text("確認中です...", "checking...."))
+        user.try_activate_count += 1
         cl = new_valorant_client_api(riot_account.region, riot_account.username, riot_account.password)
         try:
             cl.activate()
