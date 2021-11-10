@@ -151,7 +151,7 @@ class CommandsHandler(commands.Cog):
                 if account.last_get_night_shops_at and account.last_get_night_shops_at + timedelta(
                         minutes=get_span) >= datetime.now():
                     await ctx.send(user.get_text(f"最後に取得してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。",
-                                                 "It has not been three hours since the last acquisition. this command can only be executed once every three hours."))
+                                                 f"It has not been {get_span} minutes since the last acquisition. this command can only be executed once every {get_span} minutes."))
                     return
                 cl = self.bot.new_valorant_client_api(user.is_premium, account)
                 try:
@@ -201,7 +201,7 @@ class CommandsHandler(commands.Cog):
                 if account.last_get_shops_at and account.last_get_shops_at + timedelta(
                         minutes=get_span) >= datetime.now():
                     await ctx.send(user.get_text(f"最後に取得してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。",
-                                                 "It has not been three hours since the last acquisition. this command can only be executed once every three hours."))
+                                                 f"It has not been {get_span} minutes since the last acquisition. this command can only be executed once every {get_span} minutes."))
                     return
                 cl = self.bot.new_valorant_client_api(user.is_premium, account)
                 try:
