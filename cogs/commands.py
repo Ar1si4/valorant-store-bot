@@ -28,11 +28,15 @@ class CommandsHandler(commands.Cog):
                                          "Your account information has not been registered yet \nAdd your account information using the [register] command."))
             return
         if len(accounts) == 1:
-            async def noop(*args, **kwargs): ...
+            async def interactionHandler(*args, **kwargs):
+                content = kwargs.get("content")
+                if content is not None:
+                    await ctx.send(content=kwargs.get("content"))
 
             await func(view)(type("Interaction", (object,), {
                 "data": {"values": [accounts[0].game_name]},
-                "response": type("InteractionResponse", (object,), {"send_message": noop})
+                "user": type("User", (object,), {"id": ctx.message.author.id}),
+                "response": type("InteractionResponse", (object,), {"send_message": interactionHandler})
             }))
             return
         menu = discord.ui.Select(options=[
@@ -72,7 +76,7 @@ class CommandsHandler(commands.Cog):
 
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
-                await interaction.response.send_message("processing...")
+                await interaction.response.send_message(content="processing...")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
                     RiotAccount.game_name == interaction.data["values"][0]).first()
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
@@ -128,7 +132,7 @@ class CommandsHandler(commands.Cog):
     async def fetch_night_market(self, ctx: Context):
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
-                await interaction.response.send_message("processing...")
+                await interaction.response.send_message(content="processing...")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
                     RiotAccount.game_name == interaction.data["values"][0]).first()
                 user = User.get_promised(self.bot.database, interaction.user.id)
@@ -178,7 +182,7 @@ class CommandsHandler(commands.Cog):
     async def fetch_today_shop(self, ctx: Context):
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
-                await interaction.response.send_message("processing...")
+                await interaction.response.send_message(content="processing...")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
                     RiotAccount.game_name == interaction.data["values"][0]).first()
                 user = User.get_promised(self.bot.database, interaction.user.id)
@@ -452,7 +456,7 @@ Use the `premium` or `プレミアム` commands to get the details of premium us
 
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
-                await interaction.response.send_message("processing...")
+                await interaction.response.send_message(content="processing...")
                 account = self.bot.database.query(RiotAccount).filter(
                     RiotAccount.game_name == interaction.data["values"][0]).first()
                 self.bot.database.delete(account)
