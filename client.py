@@ -1,4 +1,5 @@
 import logging
+import random
 from typing import Optional
 
 import discord
@@ -6,7 +7,6 @@ import sqlalchemy.orm
 from discord.ext import commands
 
 import valclient
-from cogs.proxies import get_proxy_url
 from database import session
 from database.user import RiotAccount
 from setting import INITIAL_EXTENSIONS
@@ -21,6 +21,16 @@ def build_logger() -> logging.Logger:
     return logging.getLogger(__name__)
 
 
+def get_proxy_url(is_premium: bool):
+    if is_premium:
+        session_id = "".join(random.choices("0123456789", k=8))
+        return {
+            'http': f'http://jsoNRCcOS2-sid-{session_id}:J1F56mKG@gw.proxy.rainproxy.io:5959',
+            'https': f'http://jsoNRCcOS2-sid-{session_id}:J1F56mKG@gw.proxy.rainproxy.io:5959'
+        }
+    return None
+
+
 class ValorantStoreBot(commands.Bot):
     def __init__(self, prefix: str, intents: Optional[discord.Intents] = None):
         super().__init__(prefix, intents=intents)
@@ -32,10 +42,11 @@ class ValorantStoreBot(commands.Bot):
 
     def new_valorant_client_api(self, is_premium: bool,
                                 account: RiotAccount) -> valclient.Client:
+        proxy = get_proxy_url(is_premium)
         return valclient.Client(region=account.region, auth={
             "username": account.username,
             "password": account.password
-        }, proxy=get_proxy_url(self.database, is_premium, account))
+        }, proxy=proxy)
 
     def get_valorant_rank_tier(self, cl: valclient.Client) -> str:
         tier_to_name = ["UNRANKED", "Unused1", "Unused2", "IRON 1", "IRON 2", "IRON 3", "BRONZE 1",

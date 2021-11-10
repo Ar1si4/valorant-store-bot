@@ -53,4 +53,3 @@ class RiotAccount(Base):
 
     last_get_shops_at: datetime.datetime = Column("last_get_shops_at", DATETIME)
     last_get_night_shops_at: datetime.datetime = Column("last_get_night_shops_at", DATETIME)
-    proxy_ip: str = Column("proxy_ip", String)
