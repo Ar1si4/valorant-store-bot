@@ -25,8 +25,8 @@ def get_proxy_url(is_premium: bool):
     if is_premium:
         session_id = "".join(random.choices("0123456789", k=8))
         return {
-            'http': f'http://jsoNRCcOS2-sid-{session_id}:J1F56mKG@gw.proxy.rainproxy.io:5959',
-            'https': f'http://jsoNRCcOS2-sid-{session_id}:J1F56mKG@gw.proxy.rainproxy.io:5959'
+            'http': f'http://jsoNRCcOS2-cc-any-sid-{session_id}:J1F56mKG@gw.proxy.rainproxy.io:5959',
+            'https': f'http://jsoNRCcOS2-cc-any-sid-{session_id}:J1F56mKG@gw.proxy.rainproxy.io:5959'
         }
     return None
 

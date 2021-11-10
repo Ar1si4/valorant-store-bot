@@ -87,7 +87,7 @@ class CommandsHandler(commands.Cog):
 
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
-                await interaction.response.send_message(content="processing...")
+                await interaction.response.send_message(content="processing request....")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
                     RiotAccount.game_name == interaction.data["values"][0]).first()
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
@@ -143,7 +143,7 @@ class CommandsHandler(commands.Cog):
     async def fetch_night_market(self, ctx: Context):
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
-                await interaction.response.send_message(content="processing...")
+                await interaction.response.send_message(content="processing request....")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
                     RiotAccount.game_name == interaction.data["values"][0]).first()
                 user = User.get_promised(self.bot.database, interaction.user.id)
@@ -193,7 +193,7 @@ class CommandsHandler(commands.Cog):
     async def fetch_today_shop(self, ctx: Context):
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
-                await interaction.response.send_message(content="processing...")
+                await interaction.response.send_message(content="processing request....")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
                     RiotAccount.game_name == interaction.data["values"][0]).first()
                 user = User.get_promised(self.bot.database, interaction.user.id)
@@ -467,7 +467,7 @@ Use the `premium` or `プレミアム` commands to get the details of premium us
 
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
-                await interaction.response.send_message(content="processing...")
+                await interaction.response.send_message(content="processing request....")
                 account = self.bot.database.query(RiotAccount).filter(
                     RiotAccount.game_name == interaction.data["values"][0]).first()
                 self.bot.database.delete(account)
