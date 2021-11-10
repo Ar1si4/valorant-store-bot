@@ -130,6 +130,14 @@ class CommandsHandler(commands.Cog):
                 await interaction.response.send_message("processing...")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
                     RiotAccount.game_name == interaction.data["values"][0]).first()
+                user = User.get_promised(self.bot.database, interaction.user.id)
+                get_span = 20 if user.is_premium else 360
+                if account.last_get_night_shops_at and account.last_get_night_shops_at + timedelta(
+                        minutes=get_span) >= datetime.now():
+                    await ctx.send(user.get_text(f"最後に取得してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。",
+                                                 "It has not been three hours since the last acquisition. this command can only be executed once every three hours."))
+                    return
+
                 cl = new_valorant_client_api(account.region, account.username, account.password)
                 try:
                     cl.activate()
@@ -140,6 +148,8 @@ class CommandsHandler(commands.Cog):
                         "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command."))
                     view.stop()
                     return
+                account.last_get_night_shops_at = datetime.now()
+                self.bot.database.commit()
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
                 offers = cl.store_fetch_storefront()
                 if len(offers.get("BonusStore", {})) == 0:
@@ -171,6 +181,14 @@ class CommandsHandler(commands.Cog):
                 await interaction.response.send_message("processing...")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
                     RiotAccount.game_name == interaction.data["values"][0]).first()
+                user = User.get_promised(self.bot.database, interaction.user.id)
+                get_span = 10 if user.is_premium else 180
+                if account.last_get_shops_at and account.last_get_shops_at + timedelta(
+                        minutes=get_span) >= datetime.now():
+                    await ctx.send(user.get_text(f"最後に取得してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。",
+                                                 "It has not been three hours since the last acquisition. this command can only be executed once every three hours."))
+                    return
+
                 cl = new_valorant_client_api(account.region, account.username, account.password)
                 try:
                     cl.activate()
@@ -181,6 +199,9 @@ class CommandsHandler(commands.Cog):
                         "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command."))
                     view.stop()
                     return
+
+                account.last_get_shops_at = datetime.now()
+                self.bot.database.commit()
                 offers = cl.store_fetch_storefront()
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
                 if len(offers.get("SkinsPanelLayout", {}).get("SingleItemOffers", [])) == 0:
