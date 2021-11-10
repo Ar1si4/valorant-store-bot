@@ -6,7 +6,9 @@ import sqlalchemy.orm
 from discord.ext import commands
 
 import valclient
+from cogs.proxies import get_proxy_url
 from database import session
+from database.user import RiotAccount
 from setting import INITIAL_EXTENSIONS
 
 
@@ -19,13 +21,6 @@ def build_logger() -> logging.Logger:
     return logging.getLogger(__name__)
 
 
-def new_valorant_client_api(region: str, name: str, password: str) -> valclient.Client:
-    return valclient.Client(region=region, auth={
-        "username": name,
-        "password": password
-    })
-
-
 class ValorantStoreBot(commands.Bot):
     def __init__(self, prefix: str, intents: Optional[discord.Intents] = None):
         super().__init__(prefix, intents=intents)
@@ -34,6 +29,13 @@ class ValorantStoreBot(commands.Bot):
 
         self.database: sqlalchemy.orm.Session = session
         self.logger: logging.Logger = build_logger()
+
+    def new_valorant_client_api(self, is_premium: bool,
+                                account: RiotAccount) -> valclient.Client:
+        return valclient.Client(region=account.region, auth={
+            "username": account.username,
+            "password": account.password
+        }, proxy=get_proxy_url(self.database, is_premium, account))
 
     def get_valorant_rank_tier(self, cl: valclient.Client) -> str:
         tier_to_name = ["UNRANKED", "Unused1", "Unused2", "IRON 1", "IRON 2", "IRON 3", "BRONZE 1",

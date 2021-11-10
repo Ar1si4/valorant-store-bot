@@ -9,7 +9,7 @@ from discord.embeds import EmptyEmbed
 from discord.ext import commands
 from discord.ext.commands import Context
 
-from client import ValorantStoreBot, new_valorant_client_api
+from client import ValorantStoreBot
 from database import User, Weapon, Guild
 from database.user import RiotAccount
 
@@ -75,12 +75,13 @@ class CommandsHandler(commands.Cog):
                 await interaction.response.send_message("processing...")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
                     RiotAccount.game_name == interaction.data["values"][0]).first()
-                cl = new_valorant_client_api(account.region, account.username, account.password)
+                user = User.get_promised(self.bot.database, ctx.message.author.id)
+                cl = self.bot.new_valorant_client_api(user.is_premium, account)
                 try:
                     cl.activate()
                 except Exception as e:
                     self.bot.logger.error(f"failed to login valorant client", exc_info=e)
-                    await ctx.send(User.get_promised(self.bot.database, ctx.message.author.id).get_text(
+                    await ctx.send(user.get_text(
                         "ログイン情報の更新が必要です。パスワードの変更などをした場合にこのメッセージが表示されます。「登録」コマンドを利用してください",
                         "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command."))
                     view.stop()
@@ -137,13 +138,12 @@ class CommandsHandler(commands.Cog):
                     await ctx.send(user.get_text(f"最後に取得してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。",
                                                  "It has not been three hours since the last acquisition. this command can only be executed once every three hours."))
                     return
-
-                cl = new_valorant_client_api(account.region, account.username, account.password)
+                cl = self.bot.new_valorant_client_api(user.is_premium, account)
                 try:
                     cl.activate()
                 except Exception as e:
                     self.bot.logger.error(f"failed to login valorant client", exc_info=e)
-                    await ctx.send(User.get_promised(self.bot.database, ctx.message.author.id).get_text(
+                    await ctx.send(user.get_text(
                         "ログイン情報の更新が必要です。パスワードの変更などをした場合にこのメッセージが表示されます。「登録」コマンドを利用してください",
                         "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command."))
                     view.stop()
@@ -188,8 +188,7 @@ class CommandsHandler(commands.Cog):
                     await ctx.send(user.get_text(f"最後に取得してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。",
                                                  "It has not been three hours since the last acquisition. this command can only be executed once every three hours."))
                     return
-
-                cl = new_valorant_client_api(account.region, account.username, account.password)
+                cl = self.bot.new_valorant_client_api(user.is_premium, account)
                 try:
                     cl.activate()
                 except Exception as e:
@@ -417,7 +416,7 @@ Use the `premium` or `プレミアム` commands to get the details of premium us
         riot_account.password = password.content
         await to.send(user.get_text("確認中です...", "checking...."))
         user.try_activate_count += 1
-        cl = new_valorant_client_api(riot_account.region, riot_account.username, riot_account.password)
+        cl = self.bot.new_valorant_client_api(user.is_premium, riot_account)
         try:
             cl.activate()
         except Exception as e:
