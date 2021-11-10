@@ -97,8 +97,8 @@ class CommandsHandler(commands.Cog):
                 except Exception as e:
                     self.bot.logger.error(f"failed to login valorant client", exc_info=e)
                     await ctx.send(user.get_text(
-                        "ログイン情報の更新が必要です。パスワードの変更などをした場合にこのメッセージが表示されます。「登録」コマンドを利用してください",
-                        "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command."))
+                        "ログイン情報の更新が必要です。パスワードの変更などをした場合にこのメッセージが表示されます。「登録」コマンドを利用してください。\nなお、まれにサーバーエラーにより実行できない場合があります。その場合はしばらくお待ちの上、再度お試しください",
+                        "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command.\nIn rare cases, it may not be possible to run the program due to a server error. In that case, please wait for a while and try again."))
                     view.stop()
                     return
                 await ctx.send(self.bot.get_valorant_rank_tier(cl))
@@ -153,18 +153,20 @@ class CommandsHandler(commands.Cog):
                     await ctx.send(user.get_text(f"最後に取得してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。",
                                                  f"It has not been {get_span} minutes since the last acquisition. this command can only be executed once every {get_span} minutes."))
                     return
+                account.last_get_night_shops_at = datetime.now()
+                self.bot.database.commit()
                 cl = self.bot.new_valorant_client_api(user.is_premium, account)
                 try:
                     cl.activate()
                 except Exception as e:
                     self.bot.logger.error(f"failed to login valorant client", exc_info=e)
                     await ctx.send(user.get_text(
-                        "ログイン情報の更新が必要です。パスワードの変更などをした場合にこのメッセージが表示されます。「登録」コマンドを利用してください",
-                        "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command."))
+                        "ログイン情報の更新が必要です。パスワードの変更などをした場合にこのメッセージが表示されます。「登録」コマンドを利用してください。\nなお、まれにサーバーエラーにより実行できない場合があります。その場合はしばらくお待ちの上、再度お試しください",
+                        "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command.\nIn rare cases, it may not be possible to run the program due to a server error. In that case, please wait for a while and try again."))
+                    account.last_get_night_shops_at = None
+                    self.bot.database.commit()
                     view.stop()
                     return
-                account.last_get_night_shops_at = datetime.now()
-                self.bot.database.commit()
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
                 offers = cl.store_fetch_storefront()
                 if len(offers.get("BonusStore", {})) == 0:
@@ -203,19 +205,21 @@ class CommandsHandler(commands.Cog):
                     await ctx.send(user.get_text(f"最後に取得してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。",
                                                  f"It has not been {get_span} minutes since the last acquisition. this command can only be executed once every {get_span} minutes."))
                     return
+
+                account.last_get_shops_at = datetime.now()
+                self.bot.database.commit()
                 cl = self.bot.new_valorant_client_api(user.is_premium, account)
                 try:
                     cl.activate()
                 except Exception as e:
                     self.bot.logger.error(f"failed to login valorant client", exc_info=e)
                     await ctx.send(User.get_promised(self.bot.database, ctx.message.author.id).get_text(
-                        "ログイン情報の更新が必要です。パスワードの変更などをした場合にこのメッセージが表示されます。「登録」コマンドを利用してください",
-                        "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command."))
+                        "ログイン情報の更新が必要です。パスワードの変更などをした場合にこのメッセージが表示されます。「登録」コマンドを利用してください。\nなお、まれにサーバーエラーにより実行できない場合があります。その場合はしばらくお待ちの上、再度お試しください",
+                        "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command.\nIn rare cases, it may not be possible to run the program due to a server error. In that case, please wait for a while and try again."))
+                    account.last_get_shops_at = None
+                    self.bot.database.commit()
                     view.stop()
                     return
-
-                account.last_get_shops_at = datetime.now()
-                self.bot.database.commit()
                 offers = cl.store_fetch_storefront()
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
                 if len(offers.get("SkinsPanelLayout", {}).get("SingleItemOffers", [])) == 0:
