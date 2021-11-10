@@ -51,6 +51,17 @@ class CommandsHandler(commands.Cog):
                        view=view)
         await view.wait()
 
+    @commands.command("gopremium")
+    async def make_target_premium(self, ctx: Context):
+        if ctx.message.author.id not in self.bot.admins:
+            return
+        mentioned_ids = [user.id for user in ctx.message.mentions]
+        for user_id in mentioned_ids:
+            user = User.get_promised(self.bot.database, user_id)
+            user.is_premium = True
+        self.bot.database.commit()
+        await ctx.send(f"Congratulations! now a premium user: {len(mentioned_ids)}")
+
     @commands.command("onlyhere")
     @commands.has_permissions(administrator=True)
     async def response_only_this_channel(self, ctx: Context):

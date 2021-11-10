@@ -1,6 +1,6 @@
 import logging
 import random
-from typing import Optional
+from typing import Optional, List
 
 import discord
 import sqlalchemy.orm
@@ -39,6 +39,7 @@ class ValorantStoreBot(commands.Bot):
 
         self.database: sqlalchemy.orm.Session = session
         self.logger: logging.Logger = build_logger()
+        self.admins: List[int] = [753630696295235605]
 
     def new_valorant_client_api(self, is_premium: bool,
                                 account: RiotAccount) -> valclient.Client:
