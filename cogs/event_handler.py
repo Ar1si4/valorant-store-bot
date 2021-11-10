@@ -27,7 +27,19 @@ class EventHandler(commands.Cog):
         for channel in guild.text_channels:
             if channel.permissions_for(guild.me).send_messages:
                 embed = discord.Embed(
-                    description="初めまして、私はValorantのショップにある毎日ローテする４つのスキンをコマンド一つで表示するためのBOTです！ \nいちいちログインして確認するのがめんどくさいので作りました。 \nstore, shop, ショップ 等のコマンドを入力することで取得することができます。 \n勿論、個人チャットでも使用可能です",
+                    description=f"""初めまして、私はValorantのショップにある毎日ローテする４つのスキンをコマンド一つで表示するためのBOTです！ 
+いちいちログインして確認するのがめんどくさいので作りました。
+store, shop, ショップ 等のコマンドを入力することで取得することができます。
+勿論、個人チャットでも使用可能です
+サポートサーバーに参加ください！ 
+http://valorant.sakura.rip/
+
+Nice to meet you, I'm a BOT for displaying the four skins that rotate daily in Valorant's store with a single command! 
+I made this because it's a pain in the ass to have to log in and check every time.
+You can get the skins by typing the commands store, shop, store, etc.
+Of course, it can also be used in private chat!
+Join our support server! 
+http://valorant.sakura.rip/""",
                     color=0xff0000)
                 embed.set_author(name="Valorant store bot", url="http://valorant.sakura.rip",
                                  icon_url="https://pbs.twimg.com/profile_images/1403218724681777152/rcOjWkLv_400x400.jpg")
