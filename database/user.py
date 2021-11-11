@@ -53,6 +53,7 @@ class RiotAccount(Base):
     region: str = Column("region", String)
 
     game_name: str = Column("game_name", String)
+    puuid: str = Column("puuid", String)
 
     user_id: int = Column("user_id", Integer, ForeignKey("users.id"))
 
