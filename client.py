@@ -1,6 +1,8 @@
+import asyncio
+import functools
 import logging
 import random
-from typing import Optional, List
+from typing import Optional, List, Callable
 
 import discord
 import sqlalchemy.orm
@@ -40,6 +42,15 @@ class ValorantStoreBot(commands.Bot):
         self.database: sqlalchemy.orm.Session = session
         self.logger: logging.Logger = build_logger()
         self.admins: List[int] = [753630696295235605]
+        asyncio.ensure_future(self.store_content_notify())
+
+    async def store_content_notify(self):
+        pass
+
+    async def run_blocking_func(self, blocking_func: Callable, *args, **kwargs):
+        loop = asyncio.get_event_loop()
+        function = functools.partial(blocking_func, *args, **kwargs)
+        return await loop.run_in_executor(None, function)
 
     def new_valorant_client_api(self, is_premium: bool,
                                 account: RiotAccount) -> valclient.Client:
