@@ -28,7 +28,7 @@ class CommandsHandler(commands.Cog):
                                          "Your account information has not been registered yet \nAdd your account information using the [register] command."))
             return
         if len(accounts) == 1:
-            async def interactionHandler(*args, **kwargs):
+            async def interaction_handler(*args, **kwargs):
                 content = kwargs.get("content")
                 if content is not None:
                     await ctx.send(content=kwargs.get("content"))
@@ -36,7 +36,7 @@ class CommandsHandler(commands.Cog):
             await func(view)(type("Interaction", (object,), {
                 "data": {"values": [accounts[0].game_name]},
                 "user": type("User", (object,), {"id": ctx.message.author.id}),
-                "response": type("InteractionResponse", (object,), {"send_message": interactionHandler})
+                "response": type("InteractionResponse", (object,), {"send_message": interaction_handler})
             }))
             return
         menu = discord.ui.Select(options=[
