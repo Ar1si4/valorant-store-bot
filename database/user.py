@@ -24,7 +24,7 @@ class User(Base):
 
     auto_notify_timezone: str = Column("auto_notify_timezone", String)
     auto_notify_at: int = Column("auto_notify_at", Integer)
-
+    auto_notify_flag: bool = Column("auto_notify_flag", Boolean)
     auto_notify_account: RiotAccount = relationship("RiotAccount", uselist=False, overlaps="riot_accounts,users")
 
     @staticmethod
