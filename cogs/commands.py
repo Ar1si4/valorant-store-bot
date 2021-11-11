@@ -4,6 +4,7 @@ from datetime import timedelta, datetime
 from typing import Union, Callable
 
 import discord
+import pytz
 from discord import Interaction
 from discord.embeds import EmptyEmbed
 from discord.ext import commands
@@ -50,6 +51,78 @@ class CommandsHandler(commands.Cog):
         await ctx.send(content=user.get_text("実行するアカウント情報を選択してください", "Select the account to execute"),
                        view=view)
         await view.wait()
+
+    @commands.command("autosend")
+    async def setup_auto_send(self, ctx: Context):
+
+        def wrapper(view: discord.ui.View):
+            async def select_auto_send_time(interaction: Interaction):
+                await interaction.response.send_message(content="processing request....")
+                account: RiotAccount = self.bot.database.query(RiotAccount).filter(
+                    RiotAccount.game_name == interaction.data["values"][0]).first()
+                user = User.get_promised(self.bot.database, ctx.message.author.id)
+                if not user.is_premium:
+                    await ctx.send(user.get_text("この機能はプレミアムユーザー限定です。\n詳細は「プレミアム」コマンドを参照してください",
+                                                 "This feature is only available to Premium users.\ntype [premium] commands for details"))
+                    view.stop()
+                    return
+
+                def message_check(msg: discord.Message):
+                    if msg.channel.id != ctx.channel.id:
+                        return False
+                    if msg.author.id != ctx.message.author.id:
+                        return False
+                    return True
+
+                await ctx.send(user.get_text(
+                    "https://ja.wikipedia.org/wiki/ISO_3166-1\nこの一覧から、住んでいる国のうちAlpha-2の２文字のアルファベットをコピーして送信してください。日本はJPです。",
+                    "https://wikipedia.org/wiki/ISO_3166-1\nFrom this list, please copy the two letters of the Alpha-2 alphabet from the country you live in and send it to us. Japan is JP."))
+                try:
+                    iso = await self.bot.wait_for("message", check=message_check, timeout=240)
+                except asyncio.TimeoutError:
+                    view.stop()
+                    return
+                try:
+                    timezone = pytz.country_timezones(iso.content)[0]
+                except (KeyError, IndexError):
+                    await ctx.send(user.get_text("国コードが見つかりませんでした。\n再度「autosend」コマンドをお試しください。",
+                                                 "The country code was not found. \nPlease try the [autosend] command again."))
+                    view.stop()
+                    return
+                await ctx.send(user.get_text("何時にストアの内容を送信すればよろしいですか？1~24の間で答えてください。",
+                                             "What time should I send the contents of your store?\nPlease answer between 1 and 24."))
+
+                def message_check_hour(msg: discord.Message):
+                    if msg.channel.id != ctx.channel.id:
+                        return False
+                    if msg.author.id != ctx.message.author.id:
+                        return False
+                    try:
+                        min = int(msg.content)
+                    except ValueError:
+                        return False
+                    if 1 <= min <= 24:
+                        return True
+                    return False
+
+                try:
+                    time = await self.bot.wait_for("message", check=message_check_hour, timeout=240)
+                except asyncio.TimeoutError:
+                    view.stop()
+                    return
+
+                user.auto_notify_at = int(time.content)
+                user.auto_notify_timezone = timezone
+                user.auto_notify_account = account
+                self.bot.database.commit()
+                view.stop()
+                print(user.auto_notify_account.game_name)
+                await ctx.send(user.get_text(
+                    f"時刻を{timezone}の{time.content}時に設定しました。\n現在時刻は{datetime.now().astimezone(pytz.timezone(timezone))}です。",
+                    f"set the time to {time.content} hour in {timezone}.\nThe current time is {datetime.now().astimezone(pytz.timezone(timezone))}."))
+            return select_auto_send_time
+
+        await self.list_account_and_execute(ctx, wrapper)
 
     @commands.command("gopremium")
     async def make_target_premium(self, ctx: Context):
@@ -283,8 +356,9 @@ class CommandsHandler(commands.Cog):
     async def get_premium_details(self, ctx: Context):
         user = User.get_promised(self.bot.database, ctx.message.author.id)
         embed = discord.Embed(title=user.get_text("プレミアムユーザーの詳細", "Premium User Details"),
-                              description=user.get_text("Valorant store botの利用者は、プレミアムユーザーになることで以下の特典を得ることができます",
-                                                        "Users of the Valorant store bot can get the following benefits by becoming a premium user"),
+                              description=user.get_text(
+                                  "Valorant store botの利用者は、プレミアムユーザーになることで以下の特典を得ることができます($5 払いきり, paypay/linepay/paypal/btc/ltc)",
+                                  "Users of the Valorant store bot can get the following benefits by becoming a premium user($5 life time, paypal/btc/ltc)"),
                               color=0x800000)
         embed.set_author(name="valorant store bot", url="http://valorant.sakura.rip",
                          icon_url="https://pbs.twimg.com/profile_images/1403218724681777152/rcOjWkLv_400x400.jpg")
@@ -326,7 +400,7 @@ class CommandsHandler(commands.Cog):
                                              "The maximum number of accounts that can be registered is 10."))
                 return
         else:
-            if len(user.riot_accounts) > 1:
+            if len(user.riot_accounts) >= 1:
                 await ctx.send(user.get_text("""すでに1アカウントの情報が登録されています。
 複数アカウントの登録はプレミアムユーザーのみ可能です。
 既に登録済みのアカウント情報を更新したい場合は「登録更新」コマンドを利用してください
@@ -454,6 +528,7 @@ Use the `premium` or `プレミアム` commands to get the details of premium us
         user.activation_locked_at = None
         name = cl.fetch_player_name()
         riot_account.game_name = f"{name[0]['GameName']}#{name[0]['TagLine']}"
+        riot_account.puuid = cl.puuid
         user.riot_accounts.append(riot_account)
         self.bot.database.commit()
         await to.send(user.get_text(

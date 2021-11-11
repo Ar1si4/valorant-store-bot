@@ -22,6 +22,11 @@ class User(Base):
 
     riot_accounts: List[RiotAccount] = relationship("RiotAccount", backref="users")
 
+    auto_notify_timezone: str = Column("auto_notify_timezone", String)
+    auto_notify_at: int = Column("auto_notify_at", Integer)
+
+    auto_notify_account: RiotAccount = relationship("RiotAccount", uselist=False, overlaps="riot_accounts,users")
+
     @staticmethod
     def get_promised(session: Session, id: int) -> User:
         user = session.query(User).filter(User.id == id).first()
@@ -53,3 +58,5 @@ class RiotAccount(Base):
 
     last_get_shops_at: datetime.datetime = Column("last_get_shops_at", DATETIME)
     last_get_night_shops_at: datetime.datetime = Column("last_get_night_shops_at", DATETIME)
+
+    auto_notify_account_user_id = relationship("User", overlaps="auto_notify_account,riot_accounts,users")
