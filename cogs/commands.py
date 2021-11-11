@@ -227,8 +227,8 @@ class CommandsHandler(commands.Cog):
                     return
                 account.last_get_night_shops_at = datetime.now()
                 self.bot.database.commit()
-                cl = self.bot.new_valorant_client_api(user.is_premium, account)
                 try:
+                    cl = self.bot.new_valorant_client_api(user.is_premium, account)
                     await self.bot.run_blocking_func(cl.activate)
                 except Exception as e:
                     self.bot.logger.error(f"failed to login valorant client", exc_info=e)
@@ -282,8 +282,8 @@ class CommandsHandler(commands.Cog):
 
                 account.last_get_shops_at = datetime.now()
                 self.bot.database.commit()
-                cl = self.bot.new_valorant_client_api(user.is_premium, account)
                 try:
+                    cl = self.bot.new_valorant_client_api(user.is_premium, account)
                     await self.bot.run_blocking_func(cl.activate)
                 except Exception as e:
                     self.bot.logger.error(f"failed to login valorant client", exc_info=e)

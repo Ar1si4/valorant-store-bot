@@ -26,14 +26,27 @@ def build_logger() -> logging.Logger:
     return logging.getLogger(__name__)
 
 
+with open("proxies.txt", "r", encoding="utf-8") as f:
+    proxies = f.read().splitlines()
+
+premium_proxies = proxies[:(int(len(proxies) / 4)) * 3]
+normal_proxies = proxies[(int(len(proxies) / 4)) * 3:]
+
+
+def get_link(link: str) -> str:
+    splited = link.split(":")
+    return f"http://{splited[2]}:{splited[3]}@{splited[0]}:{splited[1]}"
+
+
 def get_proxy_url(is_premium: bool):
     if is_premium:
-        session_id = "".join(random.choices("0123456789", k=8))
-        return {
-            'http': f'http://jsoNRCcOS2-cc-any-sid-{session_id}:J1F56mKG@gw.proxy.rainproxy.io:5959',
-            'https': f'http://jsoNRCcOS2-cc-any-sid-{session_id}:J1F56mKG@gw.proxy.rainproxy.io:5959'
-        }
-    return None
+        link = get_link(random.choice(premium_proxies))
+    else:
+        link = get_link(random.choice(normal_proxies))
+    return {
+        "http": link,
+        "https": link
+    }
 
 
 class ValorantStoreBot(commands.Bot):
@@ -68,7 +81,8 @@ class ValorantStoreBot(commands.Bot):
                         u = self.get_user(user.id)
                         if not u:
                             u = await self.fetch_user(user.id)
-                        await u.send(content=user.get_text("本日のストアの内容をお送りします。", "Here's what's in your valorant store today"))
+                        await u.send(
+                            content=user.get_text("本日のストアの内容をお送りします。", "Here's what's in your valorant store today"))
                         offers = cl.store_fetch_storefront()
                         for offer_uuid in offers.get("SkinsPanelLayout", {}).get("SingleItemOffers", []):
                             skin = Weapon.get_promised(self.database, offer_uuid, user)
