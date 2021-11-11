@@ -65,7 +65,11 @@ class ValorantStoreBot(commands.Bot):
                         "BRONZE 2", "BRONZE 3", "SILVER 1", "SILVER 2", "SILVER 3", "GOLD 1", "GOLD 2",
                         "GOLD 3", "PLATINUM 1", "PLATINUM 2", "PLATINUM 3", "DIAMOND 1", "DIAMOND 2",
                         "DIAMOND 3", "IMMORTAL 1", "IMMORTAL 2", "IMMORTAL 3", "RADIANT"]
-        tier = cl.fetch_competitive_updates()["Matches"][0]["TierAfterUpdate"]
+        result = cl.fetch_competitive_updates()
+        try:
+            tier = result["Matches"][0]["TierAfterUpdate"]
+        except IndexError:
+            return "Failed to get rank tier"
         return tier_to_name[tier]
 
     async def on_ready(self):
