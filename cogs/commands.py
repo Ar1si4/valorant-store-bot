@@ -116,7 +116,6 @@ class CommandsHandler(commands.Cog):
                 user.auto_notify_account = account
                 self.bot.database.commit()
                 view.stop()
-                print(user.auto_notify_account.game_name)
                 await ctx.send(user.get_text(
                     f"時刻を{timezone}の{time.content}時に設定しました。\n現在時刻は{datetime.now().astimezone(pytz.timezone(timezone))}です。",
                     f"set the time to {time.content} hour in {timezone}.\nThe current time is {datetime.now().astimezone(pytz.timezone(timezone))}."))
