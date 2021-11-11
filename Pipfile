@@ -9,6 +9,7 @@ valorant-api = "*"
 SQLAlchemy = "*"
 "discord.py" = {git = "https://github.com/Rapptz/discord.py"}
 certifi = "*"
+pytz = "*"
 
 [dev-packages]
 
