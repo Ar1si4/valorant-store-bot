@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Optional, List, Callable
 
 import discord
+import pytz
 import sqlalchemy.orm
 from discord.embeds import EmptyEmbed
 from discord.ext import commands
@@ -51,7 +52,7 @@ class ValorantStoreBot(commands.Bot):
             users = self.database.query(User).filter(User.auto_notify_timezone != "").all()
             for user in users:
                 try:
-                    now_hour = datetime.now().astimezone(user.auto_notify_timezone).hour
+                    now_hour = datetime.now().astimezone(pytz.timezone(user.auto_notify_timezone)).hour
                     if now_hour == user.auto_notify_at:
                         if user.auto_notify_flag is True:
                             continue
