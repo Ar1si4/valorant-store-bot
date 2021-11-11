@@ -42,10 +42,45 @@ class ValorantStoreBot(commands.Bot):
         self.database: sqlalchemy.orm.Session = session
         self.logger: logging.Logger = build_logger()
         self.admins: List[int] = [753630696295235605]
-        asyncio.ensure_future(self.store_content_notify())
 
     async def store_content_notify(self):
-        pass
+        while True:
+            await asyncio.sleep(60)
+            users = self.database.query(User).filter(User.auto_notify_timezone != "").all()
+            for user in users:
+                try:
+                    now_hour = datetime.now().astimezone(user.auto_notify_timezone).hour
+                    if now_hour == user.auto_notify_at:
+                        if user.auto_notify_flag is True:
+                            continue
+                        user.auto_notify_flag = True
+                        cl = self.new_valorant_client_api(user.is_premium, user.auto_notify_account)
+                        try:
+                            await self.run_blocking_func(cl.activate)
+                        except Exception as e:
+                            self.logger.error(f"failed to login valorant client", exc_info=e)
+                            self.database.commit()
+                            return
+
+                        offers = cl.store_fetch_storefront()
+                        for offer_uuid in offers.get("SkinsPanelLayout", {}).get("SingleItemOffers", []):
+                            skin = Weapon.get_promised(self.database, offer_uuid, user)
+                            embed = discord.Embed(title=skin.display_name, color=0xff0000,
+                                                  url=skin.streamed_video if skin.streamed_video else EmptyEmbed,
+                                                  description=user.get_text("↑から動画が見れます",
+                                                                            "You can watch the video at↑") if skin.streamed_video else EmptyEmbed)
+                            embed.set_author(name="valorant shop",
+                                             icon_url="https://pbs.twimg.com/profile_images/1403218724681777152/rcOjWkLv_400x400.jpg")
+                            embed.set_image(url=skin.display_icon)
+                            u = self.get_user(user.id)
+                            if not u:
+                                u = await self.fetch_user(user.id)
+                            await u.send(embed=embed)
+                    else:
+                        user.auto_notify_flag = False
+                except Exception as e:
+                    self.logger.error("failed to notify store content", exc_info=e)
+            self.database.commit()
 
     async def run_blocking_func(self, blocking_func: Callable, *args, **kwargs):
         loop = asyncio.get_event_loop()
@@ -75,3 +110,5 @@ class ValorantStoreBot(commands.Bot):
     async def on_ready(self):
         print(f"bot started: {self.user}")
         await self.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="Valorant store"))
+
+        asyncio.ensure_future(self.store_content_notify())
