@@ -2,15 +2,17 @@ import asyncio
 import functools
 import logging
 import random
+from datetime import datetime
 from typing import Optional, List, Callable
 
 import discord
 import sqlalchemy.orm
+from discord.embeds import EmptyEmbed
 from discord.ext import commands
 
 import valclient
-from database import session
-from database.user import RiotAccount
+from database import session, Weapon
+from database.user import RiotAccount, User
 from setting import INITIAL_EXTENSIONS
 
 
