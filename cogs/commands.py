@@ -89,8 +89,8 @@ class CommandsHandler(commands.Cog):
                                                  "The country code was not found. \nPlease try the [autosend] command again."))
                     view.stop()
                     return
-                await ctx.send(user.get_text("何時にストアの内容を送信すればよろしいですか？1~24の間で答えてください。",
-                                             "What time should I send the contents of your store?\nPlease answer between 1 and 24."))
+                await ctx.send(user.get_text("何時にストアの内容を送信すればよろしいですか？0~23の間で答えてください。",
+                                             "What time should I send the contents of your store?\nPlease answer between 0 and 23."))
 
                 def message_check_hour(msg: discord.Message):
                     if msg.channel.id != ctx.channel.id:
@@ -101,7 +101,7 @@ class CommandsHandler(commands.Cog):
                         min = int(msg.content)
                     except ValueError:
                         return False
-                    if 1 <= min <= 24:
+                    if 0 <= min <= 23:
                         return True
                     return False
 
