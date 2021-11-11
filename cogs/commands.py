@@ -1,7 +1,7 @@
 import asyncio
 import random
 from datetime import timedelta, datetime
-from typing import Union, Callable
+from typing import Union, Callable, Dict
 
 import discord
 import pytz
@@ -242,27 +242,29 @@ class CommandsHandler(commands.Cog):
                     return
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
                 offers = cl.store_fetch_storefront()
-                if len(offers.get("BonusStore", {})) == 0:
+                if len(offers.get("BonusStore", {}).get("BonusStoreOffers", [])) == 0:
                     await ctx.send(user.get_text(
                         "ショップの内容が見つかりませんでした。Valorantがメンテナンス中もしくは何かの障害の可能性があります。\nそのどちらでもない場合は開発者までご連絡ください。\nhttp://valorant.sakura.rip",
                         "The contents of the store could not be found, Valorant may be under maintenance or there may be some kind of fault. \nIf it is neither of those, please contact the developer.: \nhttp://valorant.sakura.rip"))
-
-                for offer in offers.get("BonusStore", {}).get("BonusStoreOffers", []):
-                    skin = Weapon.get_promised(self.bot.database, offer["Offer"]["Rewards"][0]["ItemID"], user)
-                    embed = discord.Embed(title=skin.display_name, color=0xff0000,
-                                          url=skin.streamed_video if skin.streamed_video else EmptyEmbed,
-                                          description=user.get_text(
-                                              f'{list(offer["Offer"]["Cost"].values())[0]}→{list(offer["DiscountCosts"].values())[0]}({offer["DiscountPercent"]}%off) ',
-                                              f'{list(offer["Offer"]["Cost"].values())[0]}→{list(offer["DiscountCosts"].values())[0]}({offer["DiscountPercent"]}%off) ') if skin.streamed_video else EmptyEmbed)
-                    embed.set_author(name="valorant shop",
-                                     icon_url="https://pbs.twimg.com/profile_images/1403218724681777152/rcOjWkLv_400x400.jpg")
-                    embed.set_image(url=skin.display_icon)
-                    await ctx.send(embed=embed)
-                    view.stop()
+                await self._send_night_store_content(offers, user, ctx)
+                view.stop()
 
             return select_account_region
 
         await self._execute_shop_command_on_allowed_channel(ctx, wrapper)
+
+    async def _send_night_store_content(self, offers: Dict, user: User, ctx: Context):
+        for offer in offers.get("BonusStore", {}).get("BonusStoreOffers", []):
+            skin = Weapon.get_promised(self.bot.database, offer["Offer"]["Rewards"][0]["ItemID"], user)
+            embed = discord.Embed(title=skin.display_name, color=0xff0000,
+                                  url=skin.streamed_video if skin.streamed_video else EmptyEmbed,
+                                  description=user.get_text(
+                                      f'{list(offer["Offer"]["Cost"].values())[0]}→{list(offer["DiscountCosts"].values())[0]}({offer["DiscountPercent"]}%off) ',
+                                      f'{list(offer["Offer"]["Cost"].values())[0]}→{list(offer["DiscountCosts"].values())[0]}({offer["DiscountPercent"]}%off) ') if skin.streamed_video else EmptyEmbed)
+            embed.set_author(name="valorant shop",
+                             icon_url="https://pbs.twimg.com/profile_images/1403218724681777152/rcOjWkLv_400x400.jpg")
+            embed.set_image(url=skin.display_icon)
+            await ctx.send(embed=embed)
 
     @commands.command("shop", aliases=["store", "ショップ", "ストア"])
     async def fetch_today_shop(self, ctx: Context):
@@ -300,25 +302,28 @@ class CommandsHandler(commands.Cog):
                         "ショップの内容が見つかりませんでした。Valorantがメンテナンス中もしくは何かの障害の可能性があります。\nそのどちらでもない場合は開発者までご連絡ください。\nhttp://valorant.sakura.rip",
                         "The contents of the store could not be found, Valorant may be under maintenance or there may be some kind of fault. \nIf it is neither of those, please contact the developer.: \nhttp://valorant.sakura.rip"))
 
-                for offer_uuid in offers.get("SkinsPanelLayout", {}).get("SingleItemOffers", []):
-                    skin = Weapon.get_promised(self.bot.database, offer_uuid, user)
-
-                    embed = discord.Embed(title=skin.display_name, color=0xff0000,
-                                          url=skin.streamed_video if skin.streamed_video else EmptyEmbed,
-                                          description=user.get_text("↑から動画が見れます",
-                                                                    "You can watch the video at↑") if skin.streamed_video else EmptyEmbed)
-                    embed.set_author(name="valorant shop",
-                                     icon_url="https://pbs.twimg.com/profile_images/1403218724681777152/rcOjWkLv_400x400.jpg")
-                    embed.set_image(url=skin.display_icon)
-                    await ctx.send(embed=embed)
                 if offers.get("BonusStore") is not None:
                     await ctx.send(user.get_text("ナイトマーケットが開かれています！\n`nightmarket`, `ナイトストア`コマンドで確認しましょう！",
                                                  "The night market is open.！\nLet's check it with the command `nightmarket`, `ナイトストア`"))
+                await self._send_store_content(offers, user, ctx)
                 view.stop()
 
             return select_account_region
 
         await self._execute_shop_command_on_allowed_channel(ctx, wrapper)
+
+    async def _send_store_content(self, offers: Dict, user: User, ctx: Context):
+        for offer_uuid in offers.get("SkinsPanelLayout", {}).get("SingleItemOffers", []):
+            skin = Weapon.get_promised(self.bot.database, offer_uuid, user)
+
+            embed = discord.Embed(title=skin.display_name, color=0xff0000,
+                                  url=skin.streamed_video if skin.streamed_video else EmptyEmbed,
+                                  description=user.get_text("↑から動画が見れます",
+                                                            "You can watch the video at↑") if skin.streamed_video else EmptyEmbed)
+            embed.set_author(name="valorant shop",
+                             icon_url="https://pbs.twimg.com/profile_images/1403218724681777152/rcOjWkLv_400x400.jpg")
+            embed.set_image(url=skin.display_icon)
+            await ctx.send(embed=embed)
 
     @commands.command("randommap", aliases=["ランダムマップ"])
     async def random_map(self, ctx: Context):
