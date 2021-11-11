@@ -65,6 +65,10 @@ class ValorantStoreBot(commands.Bot):
                             self.database.commit()
                             return
 
+                        u = self.get_user(user.id)
+                        if not u:
+                            u = await self.fetch_user(user.id)
+                        await u.send(content=user.get_text("本日のストアの内容をお送りします。", "Here's what's in your valorant store today"))
                         offers = cl.store_fetch_storefront()
                         for offer_uuid in offers.get("SkinsPanelLayout", {}).get("SingleItemOffers", []):
                             skin = Weapon.get_promised(self.database, offer_uuid, user)
@@ -75,9 +79,6 @@ class ValorantStoreBot(commands.Bot):
                             embed.set_author(name="valorant shop",
                                              icon_url="https://pbs.twimg.com/profile_images/1403218724681777152/rcOjWkLv_400x400.jpg")
                             embed.set_image(url=skin.display_icon)
-                            u = self.get_user(user.id)
-                            if not u:
-                                u = await self.fetch_user(user.id)
                             await u.send(embed=embed)
                     else:
                         user.auto_notify_flag = False
