@@ -51,7 +51,7 @@ def get_proxy_url(is_premium: bool):
 
 class ValorantStoreBot(commands.Bot):
     def __init__(self, prefix: str, intents: Optional[discord.Intents] = None):
-        super().__init__(prefix, intents=intents)
+        super().__init__(prefix, intents=intents, max_messages=None)
         for c in INITIAL_EXTENSIONS:
             self.load_extension(c)
 
