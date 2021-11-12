@@ -352,7 +352,7 @@ class CommandsHandler(commands.Cog):
                 await self._send_store_content(skins_uuids, user, ctx)
 
                 if self.bot.database.query(SkinLog).filter(
-                        sqlalchemy_func.DATE(SkinLog.date) == datetime.today().date()).count() == 0:
+                        sqlalchemy_func.DATE(SkinLog.date) == datetime.today().date(), SkinLog.account_puuid == account.puuid).count() == 0:
                     logs = [SkinLog(account_puuid=account.puuid,
                                     date=datetime.today().date(), skin_uuid=uuid) for uuid in skins_uuids]
                     self.bot.database.add_all(logs)
