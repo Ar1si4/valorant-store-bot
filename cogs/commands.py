@@ -441,7 +441,9 @@ class CommandsHandler(commands.Cog):
 
         view = discord.ui.View()
         view.add_item(discord.ui.Button(label=user.get_text("プレミアムになる", "Become Premium"),
-                                        url="https://twitter.com/messages/compose?recipient_id=1247325126896447488&text=I+wanna+be+premium+user%0D%0Avia%28paypay%2Clinepay%2Cpaypal%2Cbtc%2Cltc%29%3A+%0D%0Amonth%281%EF%BD%9E12%29%3A+"))
+                                        url="https://twitter.com/messages/compose?recipient_id=1247325126896447488&text="+user.get_text(
+                                            "%E3%83%97%E3%83%AC%E3%83%9F%E3%82%A2%E3%83%A0%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC%E3%81%AB%E3%81%AA%E3%82%8A%E3%81%9F%E3%81%84%E3%81%A7%E3%81%99%E3%80%82%0D%0A%E6%94%AF%E6%89%95%E6%96%B9%E6%B3%95%28paypay%2Clinepay%2Cpaypal%2Cbtc%2Cltc%29%3A+%0D%0A%E4%BD%95%E3%81%8B%E6%9C%88%E5%88%86%281%EF%BD%9E12%29%3A+",
+                                            "I+wanna+be+premium+user%0D%0Apayment+via%28paypay%2Clinepay%2Cpaypal%2Cbtc%2Cltc%29%3A+%0D%0Amonth%281%EF%BD%9E12%29%3A+")))
 
         await ctx.send(embed=embed, view=view)
         if user.is_premium:
