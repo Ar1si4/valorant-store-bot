@@ -3,5 +3,5 @@ import os
 from client import ValorantStoreBot
 
 if __name__ == "__main__":
-    bot = ValorantStoreBot("" )
+    bot = ValorantStoreBot("")
     bot.run(os.getenv("DISCORD_TOKEN"))
