@@ -82,7 +82,7 @@ class CommandsHandler(commands.Cog):
             async def select_auto_send_time(interaction: Interaction):
                 await interaction.response.send_message(content="processing request....")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
-                    RiotAccount.game_name == interaction.data["values"][0]).first()
+                    RiotAccount._game_name == interaction.data["values"][0]).first()
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
                 if not user.is_premium:
                     await ctx.send(user.get_text("この機能はプレミアムユーザー限定です。\n詳細は「プレミアム」コマンドを参照してください",
@@ -203,7 +203,7 @@ class CommandsHandler(commands.Cog):
             async def select_account_region(interaction: Interaction):
                 await interaction.response.send_message(content="processing request....")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
-                    RiotAccount.game_name == interaction.data["values"][0]).first()
+                    RiotAccount._game_name == interaction.data["values"][0]).first()
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
                 cl = self.bot.new_valorant_client_api(user.is_premium, account)
                 try:
@@ -259,7 +259,7 @@ class CommandsHandler(commands.Cog):
             async def select_account_region(interaction: Interaction):
                 await interaction.response.send_message(content="processing request....")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
-                    RiotAccount.game_name == interaction.data["values"][0]).first()
+                    RiotAccount._game_name == interaction.data["values"][0]).first()
                 user = User.get_promised(self.bot.database, interaction.user.id)
                 get_span = 20 if user.is_premium else 360
                 if account.last_get_night_shops_at and account.last_get_night_shops_at + timedelta(
@@ -315,7 +315,7 @@ class CommandsHandler(commands.Cog):
             async def select_account_region(interaction: Interaction):
                 await interaction.response.send_message(content="processing request....")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
-                    RiotAccount.game_name == interaction.data["values"][0]).first()
+                    RiotAccount._game_name == interaction.data["values"][0]).first()
                 user = User.get_promised(self.bot.database, interaction.user.id)
                 get_span = 10 if user.is_premium else 180
                 if account.last_get_shops_at and account.last_get_shops_at + timedelta(
@@ -359,6 +359,7 @@ class CommandsHandler(commands.Cog):
                                     date=datetime.today().date(), skin_uuid=uuid) for uuid in skins_uuids]
                     self.bot.database.add_all(logs)
                     self.bot.database.commit()
+
                 view.stop()
 
             return select_account_region
@@ -624,7 +625,7 @@ Use the `premium` or `プレミアム` commands to get the details of premium us
             async def select_account_region(interaction: Interaction):
                 await interaction.response.send_message(content="processing request....")
                 account = self.bot.database.query(RiotAccount).filter(
-                    RiotAccount.game_name == interaction.data["values"][0]).first()
+                    RiotAccount._game_name == interaction.data["values"][0]).first()
                 self.bot.database.delete(account)
                 self.bot.database.commit()
                 view.stop()
