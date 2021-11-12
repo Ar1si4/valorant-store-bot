@@ -11,7 +11,7 @@ from discord.ext import commands
 from discord.ext.commands import Context
 
 from client import ValorantStoreBot
-from database import User, Weapon, Guild
+from database import User, Weapon, Guild, SkinLog
 from database.user import RiotAccount
 
 
@@ -297,7 +297,8 @@ class CommandsHandler(commands.Cog):
                     return
                 offers = cl.store_fetch_storefront()
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
-                if len(offers.get("SkinsPanelLayout", {}).get("SingleItemOffers", [])) == 0:
+                skins_uuids = offers.get("SkinsPanelLayout", {}).get("SingleItemOffers", [])
+                if len(skins_uuids) == 0:
                     await ctx.send(user.get_text(
                         "ショップの内容が見つかりませんでした。Valorantがメンテナンス中もしくは何かの障害の可能性があります。\nそのどちらでもない場合は開発者までご連絡ください。\nhttp://valorant.sakura.rip",
                         "The contents of the store could not be found, Valorant may be under maintenance or there may be some kind of fault. \nIf it is neither of those, please contact the developer.: \nhttp://valorant.sakura.rip"))
@@ -306,6 +307,16 @@ class CommandsHandler(commands.Cog):
                     await ctx.send(user.get_text("ナイトマーケットが開かれています！\n`nightmarket`, `ナイトストア`コマンドで確認しましょう！",
                                                  "The night market is open.！\nLet's check it with the command `nightmarket`, `ナイトストア`"))
                 await self._send_store_content(offers, user, ctx)
+
+                if self.bot.database.query(SkinLog).filter(SkinLog.date == datetime.today()).count() == 0:
+                    log = SkinLog(account_puuid=account.puuid,
+                                  date=datetime.today(),
+                                  skin_1=skins_uuids[0],
+                                  skin_2=skins_uuids[1],
+                                  skin_3=skins_uuids[2],
+                                  skin_4=skins_uuids[3])
+                    self.bot.database.add(log)
+                    self.bot.database.commit()
                 view.stop()
 
             return select_account_region
