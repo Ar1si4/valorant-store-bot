@@ -413,7 +413,7 @@ class CommandsHandler(commands.Cog):
                         value=user.get_text("開発中の機能などへの早期アクセスが可能です",
                                             "Early access to features under development, etc."), inline=False)
         embed.set_footer(text=user.get_text("お問い合わせは、Twitter ID @ch31212yのDMまでお願いします。",
-                                            "For inquiries, please DM us at Twitter ID @ch31212y."))
+                                            "For inquiries, please DM me at Twitter ID @ch31212y."))
         await ctx.send(embed=embed)
         if user.is_premium:
             await ctx.send(user.get_text("おめでとうございます！。あなたはプレミアムユーザーです", "Congratulations! You are a premium user!"))
