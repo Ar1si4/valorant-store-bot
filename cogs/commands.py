@@ -191,7 +191,7 @@ class CommandsHandler(commands.Cog):
     async def response_only_this_channel(self, ctx: Context):
         user = User.get_promised(self.bot.database, ctx.message.author.id)
         guild = Guild.get_promised(self.bot.database, ctx.guild.id)
-        guild.response_here = ""
+        guild.response_here = None
         self.bot.database.commit()
         await ctx.send(user.get_text(f"すべての場所でBOTがshopコマンドに反応するように設定しました。",
                                      "All locations have been set up so that the BOT responds to shop commands."))
@@ -249,7 +249,7 @@ class CommandsHandler(commands.Cog):
             return
 
         guild = Guild.get_promised(self.bot.database, ctx.guild.id)
-        if guild.response_here != "" and ctx.channel.id != guild.response_here:
+        if guild.response_here and ctx.channel.id != guild.response_here:
             return
         await self.list_account_and_execute(ctx, wrapper)
 
