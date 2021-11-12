@@ -18,7 +18,8 @@ class User(Base):
     try_activate_count: int = Column("try_activate_count", Integer, default=0)
     activation_locked_at: datetime.datetime = Column("activation_locked_at", DATETIME)
 
-    is_premium: bool = Column("is_premium", Boolean, default=False)
+    _is_premium: bool = Column("is_premium", Boolean, default=False)
+    premium_until: datetime.datetime = Column("premium_until", DATETIME)
 
     riot_accounts: List[RiotAccount] = relationship("RiotAccount", backref="users")
 
@@ -28,6 +29,14 @@ class User(Base):
     auto_notify_account: RiotAccount = relationship("RiotAccount", uselist=False, overlaps="riot_accounts,users")
 
     last_account_deleted_at: datetime.datetime = Column("last_account_deleted_at", DATETIME)
+
+    @property
+    def is_premium(self):
+        return self._is_premium and self.premium_until >= datetime.datetime.now()
+
+    @is_premium.setter
+    def is_premium(self, value: bool):
+        self._is_premium = value
 
     @staticmethod
     def get_promised(session: Session, id: int) -> User:
