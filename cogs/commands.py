@@ -52,7 +52,7 @@ class CommandsHandler(commands.Cog):
                        view=view)
         await view.wait()
 
-    @commands.command("autosend")
+    @commands.command("autosend", aliases=["自動送信"])
     async def setup_auto_send(self, ctx: Context):
 
         def wrapper(view: discord.ui.View):
@@ -119,6 +119,7 @@ class CommandsHandler(commands.Cog):
                 await ctx.send(user.get_text(
                     f"時刻を{timezone}の{time.content}時に設定しました。\n現在時刻は{datetime.now().astimezone(pytz.timezone(timezone))}です。",
                     f"set the time to {time.content} hour in {timezone}.\nThe current time is {datetime.now().astimezone(pytz.timezone(timezone))}."))
+
             return select_auto_send_time
 
         await self.list_account_and_execute(ctx, wrapper)
@@ -134,7 +135,7 @@ class CommandsHandler(commands.Cog):
         self.bot.database.commit()
         await ctx.send(f"Congratulations! now a premium user: {len(mentioned_ids)}")
 
-    @commands.command("onlyhere")
+    @commands.command("onlyhere", aliases=["コマンド制限"])
     @commands.has_permissions(administrator=True)
     async def response_only_this_channel(self, ctx: Context):
         user = User.get_promised(self.bot.database, ctx.message.author.id)
@@ -144,7 +145,7 @@ class CommandsHandler(commands.Cog):
         await ctx.send(user.get_text(f"<#{guild.response_here}> のみでBOTがshopコマンドに反応するように設定しました。[everywhere]コマンドで解除できます",
                                      f"<#{guild.response_here}> only set the BOT to respond to the shop command.\nThis can be deactivated with the [everywhere] command"))
 
-    @commands.command("everywhere")
+    @commands.command("everywhere", aliases=["コマンド解放"])
     @commands.has_permissions(administrator=True)
     async def response_only_this_channel(self, ctx: Context):
         user = User.get_promised(self.bot.database, ctx.message.author.id)
@@ -154,7 +155,7 @@ class CommandsHandler(commands.Cog):
         await ctx.send(user.get_text(f"すべての場所でBOTがshopコマンドに反応するように設定しました。",
                                      "All locations have been set up so that the BOT responds to shop commands."))
 
-    @commands.command("rank")
+    @commands.command("rank", aliases=["ランク"])
     async def get_account_rank(self, ctx: Context):
 
         def wrapper(view: discord.ui.View):
@@ -179,7 +180,7 @@ class CommandsHandler(commands.Cog):
 
         await self.list_account_and_execute(ctx, wrapper)
 
-    @commands.command("list")
+    @commands.command("list", aliases=["リスト"])
     async def list_accounts(self, ctx: Context):
         user = User.get_promised(self.bot.database, ctx.message.author.id)
         if len(user.riot_accounts) == 0:
@@ -361,29 +362,29 @@ class CommandsHandler(commands.Cog):
         user = User.get_promised(self.bot.database, ctx.message.author.id)
         embed = discord.Embed(title=user.get_text("プレミアムユーザーの詳細", "Premium User Details"),
                               description=user.get_text(
-                                  "Valorant store botの利用者は、プレミアムユーザーになることで以下の特典を得ることができます($5 払いきり, paypay/linepay/paypal/btc/ltc)",
-                                  "Users of the Valorant store bot can get the following benefits by becoming a premium user($5 life time, paypal/btc/ltc)"),
+                                  "Valorant store botの利用者は、プレミアムユーザーになることで以下の特典を得ることができます(月額500円. paypay/linepay/paypal/btc/ltc)",
+                                  "Users of the Valorant store bot can get the following benefits by becoming a premium user(5USD/month, paypal/btc/ltc)"),
                               color=0x800000)
         embed.set_author(name="valorant store bot", url="http://valorant.sakura.rip",
                          icon_url="https://pbs.twimg.com/profile_images/1403218724681777152/rcOjWkLv_400x400.jpg")
-        embed.add_field(name=user.get_text("〇登録アカウント上限の解放", "〇Release of the maximum number of registered accounts"),
+        embed.add_field(name=user.get_text("〇 登録アカウント上限の解放", "〇 Release of the maximum number of registered accounts"),
                         value=user.get_text("１アカウントの登録上限が10アカウントまで登録できるようになります",
                                             "The registration limit for one account will be increased to 10 accounts."),
                         inline=False)
-        embed.add_field(name=user.get_text("〇取得制限時間の短縮", "〇Reduction of acquisition time limit"),
+        embed.add_field(name=user.get_text("〇 取得制限時間の短縮", "〇 Reduction of acquisition time limit"),
                         value=user.get_text("通常では3時間の制限が10分になります", "The normal three-hour limit will be 10 minutes."),
                         inline=False)
-        embed.add_field(name=user.get_text("〇ユーザー体験の向上", "〇Improving the user experience"),
+        embed.add_field(name=user.get_text("〇 ユーザー体験の向上", "〇 Improving the user experience"),
                         value=user.get_text(
                             "これまで、登録情報の更新が必要などのエラーメッセージが表示されることがありましたが、それぞれのアカウントに個別のプロキシを利用することでそれの出る確率が下がります。(このエラーはプロキシの数に対してユーザー数が多すぎたことが原因でした",
                             "It used to show error messages such as registration information needs to be updated, but by using a separate proxy for each account, the probability of that appearing is reduced. (This error was caused by the number of users being too large for the number of proxies."),
                         inline=False)
         embed.add_field(
-            name=user.get_text("〇指定した時間にストア内容を自動送信", "〇Automatically send the store contents at the specified time."),
+            name=user.get_text("〇 指定した時間にストア内容を自動送信", "〇 Automatically send the store contents at the specified time."),
             value=user.get_text("毎朝8時等、指定した時間に今日のストアの内容が自動で送られます",
                                 "The contents of today's store will be automatically sent to you at the time you specify, such as 8:00 a.m. every morning."),
             inline=False)
-        embed.add_field(name=user.get_text("〇その他機能への早期アクセス", "〇Early access to other functions"),
+        embed.add_field(name=user.get_text("〇 その他機能への早期アクセス", "〇 Early access to other functions"),
                         value=user.get_text("開発中の機能などへの早期アクセスが可能です",
                                             "Early access to features under development, etc."), inline=False)
         embed.set_footer(text=user.get_text("お問い合わせは、Twitter ID @ch31212yのDMまでお願いします。",
