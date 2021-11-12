@@ -25,7 +25,8 @@ class EventHandler(commands.Cog):
                     error.original.account.is_not_valid = True
                     self.bot.database.commit()
                     return
-                except Exception:
+                except Exception as e:
+                    self.bot.logger.error("failed to update profile on login", exc_info=e)
                     return
                 name = cl.fetch_player_name()
                 error.original.account.puuid = cl.puuid
