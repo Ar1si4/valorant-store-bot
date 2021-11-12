@@ -21,6 +21,12 @@ class CommandsHandler(commands.Cog):
     def __init__(self, bot: ValorantStoreBot):
         self.bot = bot
 
+    @commands.command("help", aliases=["ヘルプ"])
+    async def help_message(self, ctx: Context):
+        user = User.get_promised(self.bot.database, ctx.message.author.id)
+        with open(user.get_text("assets/help_ja.txt", "assets/help_en.txt"), encoding="utf-8") as f:
+            await ctx.send(f.read())
+
     async def list_account_and_execute(self, ctx: Context, func: Callable):
         user = User.get_promised(self.bot.database, ctx.message.author.id)
 
