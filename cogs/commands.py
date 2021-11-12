@@ -418,9 +418,9 @@ class CommandsHandler(commands.Cog):
                               color=0x800000)
         embed.set_author(name="valorant store bot", url="http://valorant.sakura.rip",
                          icon_url="https://pbs.twimg.com/profile_images/1403218724681777152/rcOjWkLv_400x400.jpg")
-        embed.add_field(name=user.get_text("〇 登録アカウント上限の解放", "〇 Release of the maximum number of registered accounts"),
+        embed.add_field(name=user.get_text("〇 登録アカウント上限の解放", "〇 Release the maximum number of registered accounts"),
                         value=user.get_text("１アカウントの登録上限が10アカウントまで登録できるようになります",
-                                            "The registration limit for one account will be increased to 10 accounts."),
+                                            "The registration limit for 1 account will be increased to 10 accounts."),
                         inline=False)
         embed.add_field(name=user.get_text("〇 取得制限時間の短縮", "〇 Reduction of acquisition time limit"),
                         value=user.get_text("通常では3時間の制限が10分になります", "The normal three-hour limit will be 10 minutes."),
