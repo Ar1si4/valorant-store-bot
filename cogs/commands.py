@@ -574,6 +574,16 @@ Use the `premium` or `プレミアム` commands to get the details of premium us
             await ctx.send(user.get_text("この動作は個人チャットでする必要があります。", "This action needs to be done in private chat"))
             return
 
+        get_span = 5 if user.is_premium else 86400
+        if user.last_account_deleted_at and user.last_account_deleted_at + timedelta(
+                minutes=get_span) >= datetime.now():
+            await ctx.send(user.get_text(f"最後に削除してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。",
+                                         f"It has not been {get_span} minutes since the last deletion. this command can only be executed once every {get_span} minutes."))
+            return
+
+        user.last_account_deleted_at = datetime.now()
+        self.bot.database.commit()
+
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
                 await interaction.response.send_message(content="processing request....")

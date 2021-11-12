@@ -27,6 +27,8 @@ class User(Base):
     auto_notify_flag: bool = Column("auto_notify_flag", Boolean)
     auto_notify_account: RiotAccount = relationship("RiotAccount", uselist=False, overlaps="riot_accounts,users")
 
+    last_account_deleted_at: datetime.datetime = Column("last_account_deleted_at", DATETIME)
+
     @staticmethod
     def get_promised(session: Session, id: int) -> User:
         user = session.query(User).filter(User.id == id).first()
