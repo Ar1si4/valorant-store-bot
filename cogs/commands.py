@@ -1,7 +1,8 @@
 import asyncio
+import collections
 import random
 from datetime import timedelta, datetime
-from typing import Union, Callable, Dict
+from typing import Union, Callable, Dict, List
 
 import discord
 import pytz
@@ -13,6 +14,7 @@ from discord.ext.commands import Context
 from client import ValorantStoreBot
 from database import User, Weapon, Guild, SkinLog
 from database.user import RiotAccount
+from sqlalchemy import func as sqlalchemy_func
 
 
 class CommandsHandler(commands.Cog):
@@ -51,6 +53,23 @@ class CommandsHandler(commands.Cog):
         await ctx.send(content=user.get_text("実行するアカウント情報を選択してください", "Select the account to execute"),
                        view=view)
         await view.wait()
+
+    @commands.command("ranking", aliases=["ランキング"])
+    async def skin_ranking(self, ctx: Context):
+        user = User.get_promised(self.bot.database, ctx.message.author.id)
+        logs: List[SkinLog] = self.bot.database.query(SkinLog).filter(
+            sqlalchemy_func.DATE(SkinLog.date) == datetime.today().date()).all()
+        if len(logs) == 0:
+            await ctx.send(user.get_text(
+                "まだ今日は誰もBOTを利用していないようです。データが見つかりませんでした。",
+                "No one seems to be using the BOT today yet. No data was found."
+            ))
+            return
+        data = []
+        for log in logs:
+            data.append(log.skin_uuid)
+        skin_data, _ = zip(*collections.Counter(data).most_common())
+        await self._send_store_content(skin_data[:4], user, ctx)
 
     @commands.command("autosend", aliases=["自動送信"])
     async def setup_auto_send(self, ctx: Context):
@@ -306,16 +325,13 @@ class CommandsHandler(commands.Cog):
                 if offers.get("BonusStore") is not None:
                     await ctx.send(user.get_text("ナイトマーケットが開かれています！\n`nightmarket`, `ナイトストア`コマンドで確認しましょう！",
                                                  "The night market is open.！\nLet's check it with the command `nightmarket`, `ナイトストア`"))
-                await self._send_store_content(offers, user, ctx)
+                await self._send_store_content(skins_uuids, user, ctx)
 
-                if self.bot.database.query(SkinLog).filter(SkinLog.date == datetime.today()).count() == 0:
-                    log = SkinLog(account_puuid=account.puuid,
-                                  date=datetime.today(),
-                                  skin_1=skins_uuids[0],
-                                  skin_2=skins_uuids[1],
-                                  skin_3=skins_uuids[2],
-                                  skin_4=skins_uuids[3])
-                    self.bot.database.add(log)
+                if self.bot.database.query(SkinLog).filter(
+                        sqlalchemy_func.DATE(SkinLog.date) == datetime.today().date()).count() == 0:
+                    logs = [SkinLog(account_puuid=account.puuid,
+                                    date=datetime.today().date(), skin_uuid=uuid) for uuid in skins_uuids]
+                    self.bot.database.add_all(logs)
                     self.bot.database.commit()
                 view.stop()
 
@@ -323,8 +339,8 @@ class CommandsHandler(commands.Cog):
 
         await self._execute_shop_command_on_allowed_channel(ctx, wrapper)
 
-    async def _send_store_content(self, offers: Dict, user: User, ctx: Context):
-        for offer_uuid in offers.get("SkinsPanelLayout", {}).get("SingleItemOffers", []):
+    async def _send_store_content(self, offers: List[str], user: User, ctx: Context):
+        for offer_uuid in offers:
             skin = Weapon.get_promised(self.bot.database, offer_uuid, user)
 
             embed = discord.Embed(title=skin.display_name, color=0xff0000,
