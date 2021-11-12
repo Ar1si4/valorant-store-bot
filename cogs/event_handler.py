@@ -5,6 +5,7 @@ from discord.ext import commands
 
 import database.guild
 from client import ValorantStoreBot
+from database.user import UpdateProfileRequired
 
 
 class EventHandler(commands.Cog):
@@ -15,10 +16,25 @@ class EventHandler(commands.Cog):
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):
             return
-        if isinstance(error, commands.CommandInvokeError):  # コマンド実行時にエラーが発生したら
-            orig_error = getattr(error, "original", error)
-            error_msg = ''.join(traceback.TracebackException.from_exception(orig_error).format())
-            self.bot.logger.error(error_msg)
+        if isinstance(error, commands.CommandInvokeError):
+            if isinstance(error.original, UpdateProfileRequired):
+                cl = self.bot.new_valorant_client_api(False, error.original.account)
+                try:
+                    await self.bot.run_blocking_func(cl.activate)
+                except KeyError:
+                    error.original.account.is_not_valid = True
+                    self.bot.database.commit()
+                    return
+                except Exception:
+                    return
+                name = cl.fetch_player_name()
+                error.original.account.puuid = cl.puuid
+                error.original.account.game_name = f"{name[0]['GameName']}#{name[0]['TagLine']}"
+                self.bot.database.commit()
+            else:
+                orig_error = getattr(error, "original", error)
+                error_msg = ''.join(traceback.TracebackException.from_exception(orig_error).format())
+                self.bot.logger.error(error_msg)
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
@@ -46,7 +62,8 @@ http://valorant.sakura.rip/""",
                 embed.set_thumbnail(url="https://pbs.twimg.com/profile_images/1403218724681777152/rcOjWkLv_400x400.jpg")
 
                 await channel.send(embed=embed)
-                await channel.send(content="言語を変更することができます！\n[言語]コマンドをご利用ください\n\nNow you can change the language!\nPlease use the\n[language] command")
+                await channel.send(
+                    content="言語を変更することができます！\n[言語]コマンドをご利用ください\n\nNow you can change the language!\nPlease use the\n[language] command")
                 return
 
 

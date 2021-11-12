@@ -54,16 +54,22 @@ class User(Base):
         return en
 
 
+class UpdateProfileRequired(Exception):
+    def __init__(self, account: RiotAccount):
+        self.account = account
+
+
 class RiotAccount(Base):
     __tablename__ = "riot_accounts"
 
     uuid: int = Column("uuid", Integer, autoincrement=True, primary_key=True)
+    is_not_valid: bool = Column("is_not_valid", Boolean, default=False)
 
     username: str = Column("username", String)
     password: str = Column("password", String)
     region: str = Column("region", String)
 
-    game_name: str = Column("game_name", String)
+    _game_name: str = Column("game_name", String)
     puuid: str = Column("puuid", String)
 
     user_id: int = Column("user_id", Integer, ForeignKey("users.id"))
@@ -72,3 +78,13 @@ class RiotAccount(Base):
     last_get_night_shops_at: datetime.datetime = Column("last_get_night_shops_at", DATETIME)
 
     auto_notify_account_user_id = relationship("User", overlaps="auto_notify_account,riot_accounts,users")
+
+    @property
+    def game_name(self):
+        if not self._game_name:
+            raise UpdateProfileRequired(self)
+        return self._game_name
+
+    @game_name.setter
+    def game_name(self, value):
+        self._game_name = value

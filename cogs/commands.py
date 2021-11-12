@@ -273,6 +273,7 @@ class CommandsHandler(commands.Cog):
                 try:
                     cl = self.bot.new_valorant_client_api(user.is_premium, account)
                     await self.bot.run_blocking_func(cl.activate)
+                    account.puuid = cl.puuid
                 except Exception as e:
                     self.bot.logger.error(f"failed to login valorant client", exc_info=e)
                     await ctx.send(user.get_text(
@@ -329,6 +330,7 @@ class CommandsHandler(commands.Cog):
                 try:
                     cl = self.bot.new_valorant_client_api(user.is_premium, account)
                     await self.bot.run_blocking_func(cl.activate)
+                    account.puuid = cl.puuid
                 except Exception as e:
                     self.bot.logger.error(f"failed to login valorant client", exc_info=e)
                     await ctx.send(User.get_promised(self.bot.database, ctx.message.author.id).get_text(
@@ -595,8 +597,8 @@ Use the `premium` or `プレミアム` commands to get the details of premium us
         user.riot_accounts.append(riot_account)
         self.bot.database.commit()
         await to.send(user.get_text(
-            f"ログイン情報の入力が完了しました。\n{name[0]['GameName']}#{name[0]['TagLine']}\nRANK: {self.bot.get_valorant_rank_tier(cl)}",
-            f"Your login information has been entered.\n{name[0]['GameName']}#{name[0]['TagLine']}\nRANK: {self.bot.get_valorant_rank_tier(cl)}"
+            f"ログイン情報の入力が完了しました。\n{riot_account.game_name}\nRANK: {self.bot.get_valorant_rank_tier(cl)}",
+            f"Your login information has been entered.\n{riot_account.game_name}\nRANK: {self.bot.get_valorant_rank_tier(cl)}"
         ))
 
     @commands.command("unregister", aliases=["登録解除"])

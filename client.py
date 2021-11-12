@@ -107,6 +107,8 @@ class ValorantStoreBot(commands.Bot):
 
     def new_valorant_client_api(self, is_premium: bool,
                                 account: RiotAccount) -> valclient.Client:
+        if account.is_not_valid:
+            return valclient.Client()
         proxy = get_proxy_url(is_premium)
         return valclient.Client(region=account.region, auth={
             "username": account.username,
