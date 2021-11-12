@@ -438,11 +438,16 @@ class CommandsHandler(commands.Cog):
         embed.add_field(name=user.get_text("〇 その他機能への早期アクセス", "〇 Early access to other functions"),
                         value=user.get_text("開発中の機能などへの早期アクセスが可能です",
                                             "Early access to features under development, etc."), inline=False)
-        embed.set_footer(text=user.get_text("お問い合わせは、Twitter ID @ch31212yのDMまでお願いします。",
-                                            "For inquiries, please DM me at Twitter ID @ch31212y."))
-        await ctx.send(embed=embed)
+
+        view = discord.ui.View()
+        view.add_item(discord.ui.Button(label=user.get_text("プレミアムになる", "Become Premium"),
+                                        url="https://twitter.com/messages/compose?recipient_id=1247325126896447488&text=I+wanna+be+premium+user%0D%0Avia%28paypay%2Clinepay%2Cpaypal%2Cbtc%2Cltc%29%3A+%0D%0Amonth%281%EF%BD%9E12%29%3A+"))
+
+        await ctx.send(embed=embed, view=view)
         if user.is_premium:
-            await ctx.send(user.get_text(f"おめでとうございます！。あなたはプレミアムユーザーです。\n{user.premium_until.strftime('%Y/%m/%d %H:%M:%S')}まで", f"Congratulations! You are a premium user!\n until {user.premium_until.strftime('%Y/%m/%d %H:%M:%S')}"))
+            await ctx.send(
+                user.get_text(f"おめでとうございます！。あなたはプレミアムユーザーです。\n{user.premium_until.strftime('%Y/%m/%d %H:%M:%S')}まで",
+                              f"Congratulations! You are a premium user!\n until {user.premium_until.strftime('%Y/%m/%d %H:%M:%S')}"))
 
     @commands.command("register", aliases=["登録"])
     async def register_riot_account(self, ctx: Context):
