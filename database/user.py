@@ -70,7 +70,7 @@ class RiotAccount(Base):
     region: str = Column("region", String)
 
     _game_name: str = Column("game_name", String)
-    puuid: str = Column("puuid", String)
+    _puuid: str = Column("puuid", String)
 
     user_id: int = Column("user_id", Integer, ForeignKey("users.id"))
 
@@ -78,6 +78,16 @@ class RiotAccount(Base):
     last_get_night_shops_at: datetime.datetime = Column("last_get_night_shops_at", DATETIME)
 
     auto_notify_account_user_id = relationship("User", overlaps="auto_notify_account,riot_accounts,users")
+
+    @property
+    def puuid(self):
+        if not self._puuid:
+            raise UpdateProfileRequired(self)
+        return self._puuid
+
+    @puuid.setter
+    def puuid(self, value):
+        self._puuid = value
 
     @property
     def game_name(self):
