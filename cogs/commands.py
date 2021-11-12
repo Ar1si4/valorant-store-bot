@@ -115,10 +115,10 @@ class CommandsHandler(commands.Cog):
                     if msg.author.id != ctx.message.author.id:
                         return False
                     try:
-                        min = int(msg.content)
+                        minute = int(msg.content)
                     except ValueError:
                         return False
-                    if 0 <= min <= 23:
+                    if 0 <= minute <= 23:
                         return True
                     return False
 
