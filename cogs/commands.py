@@ -65,9 +65,7 @@ class CommandsHandler(commands.Cog):
                 "No one seems to be using the BOT today yet. No data was found."
             ))
             return
-        data = []
-        for log in logs:
-            data.append(log.skin_uuid)
+        data = [log.skin_uuid for log in logs]
         skin_data, _ = zip(*collections.Counter(data).most_common())
         await self._send_store_content(skin_data[:4], user, ctx)
 
