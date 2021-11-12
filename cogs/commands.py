@@ -240,8 +240,8 @@ class CommandsHandler(commands.Cog):
                 get_span = 20 if user.is_premium else 360
                 if account.last_get_night_shops_at and account.last_get_night_shops_at + timedelta(
                         minutes=get_span) >= datetime.now():
-                    await ctx.send(user.get_text(f"最後に取得してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。",
-                                                 f"It has not been {get_span} minutes since the last acquisition. this command can only be executed once every {get_span} minutes."))
+                    await ctx.send(user.get_text(f"最後に取得してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。\nプレミアムユーザーになることで、この制限を緩和することができます。プレミアムユーザーの詳細は`premium`, `プレミアム`コマンドを利用してください",
+                                                 f"It has not been {get_span} minutes since the last acquisition. this command can only be executed once every {get_span} minutes.\nYou can relax this restriction by becoming a premium user. Use the `premium` and `プレミアム` commands for more information about premium users"))
                     return
                 account.last_get_night_shops_at = datetime.now()
                 self.bot.database.commit()
@@ -294,8 +294,8 @@ class CommandsHandler(commands.Cog):
                 get_span = 10 if user.is_premium else 180
                 if account.last_get_shops_at and account.last_get_shops_at + timedelta(
                         minutes=get_span) >= datetime.now():
-                    await ctx.send(user.get_text(f"最後に取得してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。",
-                                                 f"It has not been {get_span} minutes since the last acquisition. this command can only be executed once every {get_span} minutes."))
+                    await ctx.send(user.get_text(f"最後に取得してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。\nプレミアムユーザーになることで、この制限を緩和することができます。プレミアムユーザーの詳細は`premium`, `プレミアム`コマンドを利用してください",
+                                                 f"It has not been {get_span} minutes since the last acquisition. this command can only be executed once every {get_span} minutes.\nYou can relax this restriction by becoming a premium user. Use the `premium` and `プレミアム` commands for more information about premium users"))
                     return
 
                 account.last_get_shops_at = datetime.now()
@@ -577,8 +577,8 @@ Use the `premium` or `プレミアム` commands to get the details of premium us
         get_span = 5 if user.is_premium else 86400
         if user.last_account_deleted_at and user.last_account_deleted_at + timedelta(
                 minutes=get_span) >= datetime.now():
-            await ctx.send(user.get_text(f"最後に削除してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。",
-                                         f"It has not been {get_span} minutes since the last deletion. this command can only be executed once every {get_span} minutes."))
+            await ctx.send(user.get_text(f"最後に削除してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。\nプレミアムユーザーになることで、この制限を緩和することができます。プレミアムユーザーの詳細は`premium`, `プレミアム`コマンドを利用してください",
+                                         f"It has not been {get_span} minutes since the last deletion. this command can only be executed once every {get_span} minutes.\nYou can relax this restriction by becoming a premium user. Use the `premium` and `プレミアム` commands for more information about premium users"))
             return
 
         user.last_account_deleted_at = datetime.now()
