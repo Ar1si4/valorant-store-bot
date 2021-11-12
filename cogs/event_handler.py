@@ -18,20 +18,7 @@ class EventHandler(commands.Cog):
             return
         if isinstance(error, commands.CommandInvokeError):
             if isinstance(error.original, UpdateProfileRequired):
-                cl = self.bot.new_valorant_client_api(False, error.original.account)
-                try:
-                    await self.bot.run_blocking_func(cl.activate)
-                except KeyError:
-                    error.original.account.is_not_valid = True
-                    self.bot.database.commit()
-                    return
-                except Exception as e:
-                    self.bot.logger.error("failed to update profile on login", exc_info=e)
-                    return
-                name = cl.fetch_player_name()
-                error.original.account.puuid = cl.puuid
-                error.original.account.game_name = f"{name[0]['GameName']}#{name[0]['TagLine']}"
-                self.bot.database.commit()
+                await self.bot.update_account_profile(error.original.account)
             else:
                 orig_error = getattr(error, "original", error)
                 error_msg = ''.join(traceback.TracebackException.from_exception(orig_error).format())

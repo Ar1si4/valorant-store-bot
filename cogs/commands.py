@@ -41,13 +41,20 @@ class CommandsHandler(commands.Cog):
                 content = kwargs.get("content")
                 if content is not None:
                     await ctx.send(content=kwargs.get("content"))
-
+            if not accounts[0]._game_name:
+                await ctx.send(user.get_text("登録されている情報を更新しています....", "updating the registered information"))
+                await self.bot.update_account_profile(accounts[0])
             await func(view)(type("Interaction", (object,), {
                 "data": {"values": [accounts[0].game_name]},
                 "user": type("User", (object,), {"id": ctx.message.author.id}),
                 "response": type("InteractionResponse", (object,), {"send_message": interaction_handler})
             }))
             return
+        await ctx.send(user.get_text("登録されている情報を更新しています....", "updating the registered information"))
+        for acc in accounts:
+            if not acc._game_name:
+                await self.bot.update_account_profile(acc)
+
         menu = discord.ui.Select(options=[
             discord.SelectOption(
                 label=account.game_name
@@ -80,7 +87,7 @@ class CommandsHandler(commands.Cog):
 
         def wrapper(view: discord.ui.View):
             async def select_auto_send_time(interaction: Interaction):
-                await interaction.response.send_message(content="processing request....")
+                await interaction.response.send_message(content="processing your request....wait a moment...")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
                     RiotAccount._game_name == interaction.data["values"][0]).first()
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
@@ -201,7 +208,7 @@ class CommandsHandler(commands.Cog):
 
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
-                await interaction.response.send_message(content="processing request....")
+                await interaction.response.send_message(content="processing your request....wait a moment...")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
                     RiotAccount._game_name == interaction.data["values"][0]).first()
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
@@ -257,7 +264,7 @@ class CommandsHandler(commands.Cog):
     async def fetch_night_market(self, ctx: Context):
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
-                await interaction.response.send_message(content="processing request....")
+                await interaction.response.send_message(content="processing your request....wait a moment...")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
                     RiotAccount._game_name == interaction.data["values"][0]).first()
                 user = User.get_promised(self.bot.database, interaction.user.id)
@@ -313,7 +320,7 @@ class CommandsHandler(commands.Cog):
     async def fetch_today_shop(self, ctx: Context):
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
-                await interaction.response.send_message(content="processing request....")
+                await interaction.response.send_message(content="processing your request....wait a moment...")
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
                     RiotAccount._game_name == interaction.data["values"][0]).first()
                 user = User.get_promised(self.bot.database, interaction.user.id)
@@ -623,7 +630,7 @@ Use the `premium` or `プレミアム` commands to get the details of premium us
 
         def wrapper(view: discord.ui.View):
             async def select_account_region(interaction: Interaction):
-                await interaction.response.send_message(content="processing request....")
+                await interaction.response.send_message(content="processing your request....wait a moment...")
                 account = self.bot.database.query(RiotAccount).filter(
                     RiotAccount._game_name == interaction.data["values"][0]).first()
                 self.bot.database.delete(account)

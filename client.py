@@ -59,6 +59,22 @@ class ValorantStoreBot(commands.Bot):
         self.logger: logging.Logger = build_logger()
         self.admins: List[int] = [753630696295235605]
 
+    async def update_account_profile(self, account: RiotAccount):
+        cl = self.new_valorant_client_api(False, account)
+        try:
+            await self.run_blocking_func(cl.activate)
+        except KeyError:
+            account.is_not_valid = True
+            self.database.commit()
+            return
+        except Exception as e:
+            self.logger.error("failed to update profile on login", exc_info=e)
+            return
+        name = cl.fetch_player_name()
+        account.puuid = cl.puuid
+        account.game_name = f"{name[0]['GameName']}#{name[0]['TagLine']}"
+        self.database.commit()
+
     async def store_content_notify(self):
         while True:
             await asyncio.sleep(60)
