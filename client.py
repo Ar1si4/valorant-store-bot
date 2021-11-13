@@ -29,8 +29,8 @@ def build_logger() -> logging.Logger:
 with open("proxies.txt", "r", encoding="utf-8") as f:
     proxies = f.read().splitlines()
 
-premium_proxies = proxies[:(int(len(proxies) / 4)) * 3]
-normal_proxies = proxies[(int(len(proxies) / 4)) * 3:]
+premium_proxies = proxies[:(int(len(proxies) / 2))]
+normal_proxies = proxies[(int(len(proxies) / 2)):]
 
 
 def get_link(link: str) -> str:
