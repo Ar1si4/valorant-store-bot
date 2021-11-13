@@ -30,7 +30,7 @@ class CommandsHandler(commands.Cog):
     async def list_account_and_execute(self, ctx: Context, func: Callable):
         user = User.get_promised(self.bot.database, ctx.message.author.id)
 
-        view = discord.ui.View(timeout=240)
+        view = discord.ui.View(timeout=60)
         accounts = user.riot_accounts
         if len(accounts) == 0:
             await ctx.send(user.get_text("アカウント情報が登録されていません\n[登録]コマンドを利用して登録してください",
@@ -50,9 +50,9 @@ class CommandsHandler(commands.Cog):
                 "response": type("InteractionResponse", (object,), {"send_message": interaction_handler})
             }))
             return
-        await ctx.send(user.get_text("登録されている情報を更新しています....", "updating the registered information"))
         for acc in accounts:
             if not acc._game_name:
+                await ctx.send(user.get_text("登録されている情報を更新しています....", "updating the registered information"))
                 await self.bot.update_account_profile(acc)
 
         menu = discord.ui.Select(options=[
@@ -108,7 +108,7 @@ class CommandsHandler(commands.Cog):
                     "https://ja.wikipedia.org/wiki/ISO_3166-1\nこの一覧から、住んでいる国のうちAlpha-2の２文字のアルファベットをコピーして送信してください。日本はJPです。",
                     "https://wikipedia.org/wiki/ISO_3166-1\nFrom this list, please copy the two letters of the Alpha-2 alphabet from the country you live in and send it to us. Japan is JP."))
                 try:
-                    iso = await self.bot.wait_for("message", check=message_check, timeout=240)
+                    iso = await self.bot.wait_for("message", check=message_check, timeout=60)
                 except asyncio.TimeoutError:
                     view.stop()
                     return
@@ -136,7 +136,7 @@ class CommandsHandler(commands.Cog):
                     return False
 
                 try:
-                    time = await self.bot.wait_for("message", check=message_check_hour, timeout=240)
+                    time = await self.bot.wait_for("message", check=message_check_hour, timeout=60)
                 except asyncio.TimeoutError:
                     view.stop()
                     return
@@ -530,7 +530,7 @@ Use the `premium` or `プレミアム` commands to get the details of premium us
             return True
 
         riot_account = RiotAccount()
-        view = discord.ui.View(timeout=240)
+        view = discord.ui.View(timeout=60)
         menu = discord.ui.Select(options=[
             discord.SelectOption(
                 label=region,
@@ -562,7 +562,7 @@ Use the `premium` or `プレミアム` commands to get the details of premium us
         await to.send(user.get_text("ユーザー名を送信してください。", "Submit your user id"))
 
         try:
-            username = await self.bot.wait_for("message", check=check_is_private_message, timeout=240)
+            username = await self.bot.wait_for("message", check=check_is_private_message, timeout=60)
         except asyncio.TimeoutError:
             return
         riot_account.username = username.content
@@ -576,7 +576,7 @@ Use the `premium` or `プレミアム` commands to get the details of premium us
 
         await to.send(user.get_text("次に、パスワードを送信してください。", "Submit your password"))
         try:
-            password = await self.bot.wait_for("message", check=check_is_private_message, timeout=240)
+            password = await self.bot.wait_for("message", check=check_is_private_message, timeout=60)
         except asyncio.TimeoutError:
             return
         riot_account.password = password.content

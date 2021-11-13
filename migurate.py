@@ -2,7 +2,7 @@ from typing import List
 
 from database import User as UserNew
 from database_old import User as UserOld
-from database import session as sessionN
+from database import session as sessionNew
 from database_old import session as sessionOld
 from database import RiotAccount
 
@@ -22,5 +22,5 @@ for old in olds:
         ]
     ))
 print(len(new_users))
-sessionN.add_all(new_users)
-sessionN.commit()
+sessionNew.add_all(new_users)
+sessionNew.commit()
