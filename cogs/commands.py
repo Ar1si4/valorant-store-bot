@@ -16,6 +16,8 @@ from database import User, Weapon, Guild, SkinLog
 from database.user import RiotAccount
 from sqlalchemy import func as sqlalchemy_func
 
+from valclient.auth import InvalidCredentialError, RateLimitedError
+
 
 class CommandsHandler(commands.Cog):
     def __init__(self, bot: ValorantStoreBot):
@@ -213,14 +215,8 @@ class CommandsHandler(commands.Cog):
                 account: RiotAccount = self.bot.database.query(RiotAccount).filter(
                     RiotAccount._game_name == interaction.data["values"][0]).first()
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
-                cl = self.bot.new_valorant_client_api(user.is_premium, account)
-                try:
-                    await self.bot.run_blocking_func(cl.activate)
-                except Exception as e:
-                    self.bot.logger.error(f"failed to login valorant client", exc_info=e)
-                    await ctx.send(user.get_text(
-                        "ログイン情報の更新が必要です。パスワードの変更などをした場合にこのメッセージが表示されます。「登録」コマンドを利用してください。\nなお、まれにサーバーエラーにより実行できない場合があります。その場合はしばらくお待ちの上、再度お試しください",
-                        "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command.\nIn rare cases, it may not be possible to run the program due to a server error. In that case, please wait for a while and try again."))
+                cl = await self.bot.login_valorant(user, account)
+                if not cl:
                     view.stop()
                     return
                 tier = await self.bot.run_blocking_func(self.bot.get_valorant_rank_tier, cl)
@@ -279,20 +275,10 @@ class CommandsHandler(commands.Cog):
                     return
                 account.last_get_night_shops_at = datetime.now()
                 self.bot.database.commit()
-                try:
-                    cl = self.bot.new_valorant_client_api(user.is_premium, account)
-                    await self.bot.run_blocking_func(cl.activate)
-                    account.puuid = cl.puuid
-                except Exception as e:
-                    self.bot.logger.error(f"failed to login valorant client", exc_info=e)
-                    await ctx.send(user.get_text(
-                        "ログイン情報の更新が必要です。パスワードの変更などをした場合にこのメッセージが表示されます。「登録」コマンドを利用してください。\nなお、まれにサーバーエラーにより実行できない場合があります。その場合はしばらくお待ちの上、再度お試しください",
-                        "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command.\nIn rare cases, it may not be possible to run the program due to a server error. In that case, please wait for a while and try again."))
-                    account.last_get_night_shops_at = None
-                    self.bot.database.commit()
+                cl = await self.bot.login_valorant(user, account)
+                if not cl:
                     view.stop()
                     return
-                user = User.get_promised(self.bot.database, ctx.message.author.id)
                 offers = await self.bot.run_blocking_func(cl.store_fetch_storefront)
                 if len(offers.get("BonusStore", {}).get("BonusStoreOffers", [])) == 0:
                     await ctx.send(user.get_text(
@@ -336,15 +322,8 @@ class CommandsHandler(commands.Cog):
 
                 account.last_get_shops_at = datetime.now()
                 self.bot.database.commit()
-                try:
-                    cl = self.bot.new_valorant_client_api(user.is_premium, account)
-                    await self.bot.run_blocking_func(cl.activate)
-                    account.puuid = cl.puuid
-                except Exception as e:
-                    self.bot.logger.error(f"failed to login valorant client", exc_info=e)
-                    await ctx.send(User.get_promised(self.bot.database, ctx.message.author.id).get_text(
-                        "ログイン情報の更新が必要です。パスワードの変更などをした場合にこのメッセージが表示されます。「登録」コマンドを利用してください。\nなお、まれにサーバーエラーにより実行できない場合があります。その場合はしばらくお待ちの上、再度お試しください",
-                        "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command.\nIn rare cases, it may not be possible to run the program due to a server error. In that case, please wait for a while and try again."))
+                cl = await self.bot.login_valorant(user, account)
+                if not cl:
                     account.last_get_shops_at = None
                     self.bot.database.commit()
                     view.stop()
@@ -588,8 +567,7 @@ Use the `premium` or `プレミアム` commands to get the details of premium us
         cl = self.bot.new_valorant_client_api(user.is_premium, riot_account)
         try:
             await self.bot.run_blocking_func(cl.activate)
-        except Exception as e:
-            self.bot.logger.error(f"failed to login valorant client", exc_info=e)
+        except InvalidCredentialError:
             if user.try_activate_count >= 3:
                 user.activation_locked_at = datetime.now()
                 await to.send(user.get_text(f"ログインの試行回数上限に達しました。({user.try_activate_count}回)\n10分後に再度お試しください。",
@@ -600,6 +578,15 @@ Use the `premium` or `プレミアム` commands to get the details of premium us
                 "ログインの情報に誤りがあります。\n再度「登録」コマンドを利用してログイン情報を登録してください。",
                 "Invalid credentials, Please use the [register] command again to register your login information."))
             return
+        except RateLimitedError:
+            await to.send(user.get_text("現在サーバーが込み合っており、取得ができませんでした。後程お試しください",
+                                        "The server is currently busy and could not retrieve the data. Please try again later."))
+            return None
+        except Exception as e:
+            self.bot.logger.error(f"failed to login valorant client", exc_info=e)
+            await to.send(user.get_text("不明なエラーが発生しました。管理者までお問い合わせください。",
+                                        "An unknown error has occurred. Please contact the administrator."))
+            return None
         user.try_activate_count = 0
         user.activation_locked_at = None
         name = await self.bot.run_blocking_func(cl.fetch_player_name)
