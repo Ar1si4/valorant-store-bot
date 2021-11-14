@@ -10,6 +10,7 @@ SQLAlchemy = "*"
 "discord.py" = {git = "https://github.com/Rapptz/discord.py"}
 certifi = "*"
 pytz = "*"
+python-dotenv = "*"
 
 [dev-packages]
 
