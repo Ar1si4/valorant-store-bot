@@ -18,7 +18,8 @@ class EventHandler(commands.Cog):
             return
         if isinstance(error, commands.CommandInvokeError):
             if isinstance(error.original, UpdateProfileRequired):
-                await self.bot.update_account_profile(error.original.account)
+                u = await self.bot.get_user_promised(error.original.account.user_id)
+                await self.bot.update_account_profile(u, error.original.account)
             else:
                 orig_error = getattr(error, "original", error)
                 error_msg = ''.join(traceback.TracebackException.from_exception(orig_error).format())

@@ -92,6 +92,7 @@ class ValorantStoreBot(commands.AutoShardedBot):
             await user_d.send(user.get_text("不明なエラーが発生しました。管理者までお問い合わせください。",
                                             "An unknown error has occurred. Please contact the administrator."))
             return None
+        account.puuid = cl.puuid
         return cl
 
     async def store_content_notify(self):
