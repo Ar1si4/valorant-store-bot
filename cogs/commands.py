@@ -291,7 +291,7 @@ class CommandsHandler(commands.Cog):
                     view.stop()
                     return
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
-                offers = cl.store_fetch_storefront()
+                offers = await self.bot.run_blocking_func(cl.store_fetch_storefront)
                 if len(offers.get("BonusStore", {}).get("BonusStoreOffers", [])) == 0:
                     await ctx.send(user.get_text(
                         "ショップの内容が見つかりませんでした。Valorantがメンテナンス中もしくは何かの障害の可能性があります。\nそのどちらでもない場合は開発者までご連絡ください。\nhttp://valorant.sakura.rip",
@@ -347,7 +347,7 @@ class CommandsHandler(commands.Cog):
                     self.bot.database.commit()
                     view.stop()
                     return
-                offers = cl.store_fetch_storefront()
+                offers = await self.bot.run_blocking_func(cl.store_fetch_storefront)
                 user = User.get_promised(self.bot.database, ctx.message.author.id)
                 skins_uuids = offers.get("SkinsPanelLayout", {}).get("SingleItemOffers", [])
                 if len(skins_uuids) == 0:
@@ -599,7 +599,7 @@ Use the `premium` or `プレミアム` commands to get the details of premium us
             return
         user.try_activate_count = 0
         user.activation_locked_at = None
-        name = cl.fetch_player_name()
+        name = await self.bot.run_blocking_func(cl.fetch_player_name)
         riot_account.game_name = f"{name[0]['GameName']}#{name[0]['TagLine']}"
         riot_account.puuid = cl.puuid
         user.riot_accounts.append(riot_account)

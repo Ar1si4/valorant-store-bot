@@ -70,7 +70,7 @@ class ValorantStoreBot(commands.AutoShardedBot):
         except Exception as e:
             self.logger.error("failed to update profile on login", exc_info=e)
             return
-        name = cl.fetch_player_name()
+        name = await self.run_blocking_func(cl.fetch_player_name)
         account.puuid = cl.puuid
         account.game_name = f"{name[0]['GameName']}#{name[0]['TagLine']}"
         self.database.commit()
@@ -99,7 +99,7 @@ class ValorantStoreBot(commands.AutoShardedBot):
                             u = await self.fetch_user(user.id)
                         await u.send(
                             content=user.get_text("本日のストアの内容をお送りします。", "Here's what's in your valorant store today"))
-                        offers = cl.store_fetch_storefront()
+                        offers = await self.run_blocking_func(cl.store_fetch_storefront)
                         for offer_uuid in offers.get("SkinsPanelLayout", {}).get("SingleItemOffers", []):
                             skin = Weapon.get_promised(self.database, offer_uuid, user)
                             embed = discord.Embed(title=skin.display_name, color=0xff0000,
@@ -136,7 +136,7 @@ class ValorantStoreBot(commands.AutoShardedBot):
                         "BRONZE 2", "BRONZE 3", "SILVER 1", "SILVER 2", "SILVER 3", "GOLD 1", "GOLD 2",
                         "GOLD 3", "PLATINUM 1", "PLATINUM 2", "PLATINUM 3", "DIAMOND 1", "DIAMOND 2",
                         "DIAMOND 3", "IMMORTAL 1", "IMMORTAL 2", "IMMORTAL 3", "RADIANT"]
-        result = cl.fetch_competitive_updates()
+        result = await self.run_blocking_func(cl.fetch_competitive_updates)
         try:
             tier = result["Matches"][0]["TierAfterUpdate"]
         except IndexError:
