@@ -24,7 +24,7 @@ class Auth:
             'redirect_uri': 'https://playvalorant.com/opt_in',
             'response_type': 'token id_token',
         }
-        r = session.post('https://auth.riotgames.com/api/v1/authorization', timeout=5, json=data)
+        r = session.post('https://auth.riotgames.com/api/v1/authorization', timeout=10, json=data)
 
         # print(r.text)
         data = {
@@ -32,7 +32,7 @@ class Auth:
             'username': self.username,
             'password': self.password
         }
-        r = session.put('https://auth.riotgames.com/api/v1/authorization', timeout=5, json=data)
+        r = session.put('https://auth.riotgames.com/api/v1/authorization', timeout=10, json=data)
         pattern = re.compile(
             'access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)')
 
@@ -50,11 +50,11 @@ class Auth:
         headers = {
             'Authorization': f'Bearer {access_token}',
         }
-        r = session.post('https://entitlements.auth.riotgames.com/api/token/v1', headers=headers, json={}, timeout=5)
+        r = session.post('https://entitlements.auth.riotgames.com/api/token/v1', headers=headers, json={}, timeout=10)
         entitlements_token = r.json()['entitlements_token']
         # print('Entitlements Token: ' + entitlements_token)
 
-        r = session.post('https://auth.riotgames.com/userinfo', headers=headers, json={}, timeout=5)
+        r = session.post('https://auth.riotgames.com/userinfo', headers=headers, json={}, timeout=10)
         user_id = r.json()['sub']
         # print('User ID: ' + user_id)
         headers['X-Riot-Entitlements-JWT'] = entitlements_token
