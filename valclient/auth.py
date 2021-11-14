@@ -5,6 +5,9 @@ import re
 class InvalidCredentialError(Exception): ...
 
 
+class RateLimitedError(Exception): ...
+
+
 class Auth:
 
     def __init__(self, auth, proxy):
@@ -32,6 +35,11 @@ class Auth:
         r = session.put('https://auth.riotgames.com/api/v1/authorization', timeout=5, json=data)
         pattern = re.compile(
             'access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)')
+
+        if r.json().get("error") == "rate_limited":
+            raise RateLimitedError("rate_limited")
+        if r.json().get("error") == "auth_failure":
+            raise InvalidCredentialError(f"invalid credential")
         try:
             data = pattern.findall(r.json()['response']['parameters']['uri'])[0]
         except KeyError:
