@@ -15,6 +15,7 @@ import valclient
 from database import session, Weapon
 from database.user import RiotAccount, User
 from setting import INITIAL_EXTENSIONS
+from valclient.auth import InvalidCredentialError, RateLimitedError
 
 
 def build_logger() -> logging.Logger:
@@ -59,21 +60,39 @@ class ValorantStoreBot(commands.AutoShardedBot):
         self.logger: logging.Logger = build_logger()
         self.admins: List[int] = [753630696295235605]
 
-    async def update_account_profile(self, account: RiotAccount):
-        cl = self.new_valorant_client_api(False, account)
-        try:
-            await self.run_blocking_func(cl.activate)
-        except KeyError:
-            account.is_not_valid = True
-            self.database.commit()
-            return
-        except Exception as e:
-            self.logger.error("failed to update profile on login", exc_info=e)
+    async def update_account_profile(self, user: User, account: RiotAccount):
+        cl = await self.login_valorant(user, account)
+        if not cl:
             return
         name = await self.run_blocking_func(cl.fetch_player_name)
         account.puuid = cl.puuid
         account.game_name = f"{name[0]['GameName']}#{name[0]['TagLine']}"
         self.database.commit()
+
+    async def get_user_promised(self, uid: int) -> discord.User:
+        u = self.get_user(uid)
+        if not u:
+            u = await self.fetch_user(uid)
+        return u
+
+    async def login_valorant(self, user: User, account: RiotAccount) -> Optional[valclient.Client]:
+        cl = self.new_valorant_client_api(user.is_premium, account)
+        user_d = self.get_user_promised(account.user_id)
+        try:
+            await self.run_blocking_func(cl.activate)
+        except RateLimitedError:
+            await user_d.send(user.get_text("現在サーバーが込み合っており、取得ができませんでした。後程お試しください",
+                                            "The server is currently busy and could not retrieve the data. Please try again later."))
+            return None
+        except InvalidCredentialError:
+            await user_d.send(user.get_text("ログインの情報に誤りがあります。\n再度「登録」コマンドを利用してログイン情報を登録してください",
+                                            "Invalid credentials, Please use the [register] command again to register your login information."))
+        except Exception as e:
+            self.logger.error(f"failed to login valorant client", exc_info=e)
+            await user_d.send(user.get_text("不明なエラーが発生しました。管理者までお問い合わせください。",
+                                            "An unknown error has occurred. Please contact the administrator."))
+            return None
+        return cl
 
     async def store_content_notify(self):
         while True:
@@ -86,17 +105,11 @@ class ValorantStoreBot(commands.AutoShardedBot):
                         if user.auto_notify_flag is True:
                             continue
                         user.auto_notify_flag = True
-                        cl = self.new_valorant_client_api(user.is_premium, user.auto_notify_account)
-                        try:
-                            await self.run_blocking_func(cl.activate)
-                        except Exception as e:
-                            self.logger.error(f"failed to login valorant client", exc_info=e)
+                        cl = await self.login_valorant(user, user.auto_notify_account)
+                        if not cl:
                             self.database.commit()
                             return
-
-                        u = self.get_user(user.id)
-                        if not u:
-                            u = await self.fetch_user(user.id)
+                        u = await self.get_user_promised(user.id)
                         await u.send(
                             content=user.get_text("本日のストアの内容をお送りします。", "Here's what's in your valorant store today"))
                         offers = await self.run_blocking_func(cl.store_fetch_storefront)
