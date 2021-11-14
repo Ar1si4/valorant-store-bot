@@ -41,6 +41,7 @@ class CommandsHandler(commands.Cog):
                 content = kwargs.get("content")
                 if content is not None:
                     await ctx.send(content=kwargs.get("content"))
+
             if not accounts[0]._game_name:
                 await ctx.send(user.get_text("登録されている情報を更新しています....", "updating the registered information"))
                 await self.bot.update_account_profile(accounts[0])
@@ -222,7 +223,8 @@ class CommandsHandler(commands.Cog):
                         "You need to update your login credentials. This message will appear if you have changed your password. Please use the [register] command.\nIn rare cases, it may not be possible to run the program due to a server error. In that case, please wait for a while and try again."))
                     view.stop()
                     return
-                await ctx.send(self.bot.get_valorant_rank_tier(cl))
+                tier = await self.bot.run_blocking_func(self.bot.get_valorant_rank_tier, cl)
+                await ctx.send(tier)
 
             return select_account_region
 
@@ -272,8 +274,8 @@ class CommandsHandler(commands.Cog):
                 if account.last_get_night_shops_at and account.last_get_night_shops_at + timedelta(
                         minutes=get_span) >= datetime.now():
                     await ctx.send(user.get_text(
-                        f"最後に取得してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。\nプレミアムユーザーになることで、この制限を緩和することができます。プレミアムユーザーの詳細は`premium`, `プレミアム`コマンドを利用してください",
-                        f"It has not been {get_span} minutes since the last acquisition. this command can only be executed once every {get_span} minutes.\nYou can relax this restriction by becoming a premium user. Use the `premium` and `プレミアム` commands for more information about premium users"))
+                        f"最後に取得してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。",
+                        f"It has not been {get_span} minutes since the last acquisition. this command can only be executed once every {get_span} minutes."))
                     return
                 account.last_get_night_shops_at = datetime.now()
                 self.bot.database.commit()
@@ -328,8 +330,8 @@ class CommandsHandler(commands.Cog):
                 if account.last_get_shops_at and account.last_get_shops_at + timedelta(
                         minutes=get_span) >= datetime.now():
                     await ctx.send(user.get_text(
-                        f"最後に取得してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。\nプレミアムユーザーになることで、この制限を緩和することができます。プレミアムユーザーの詳細は`premium`, `プレミアム`コマンドを利用してください",
-                        f"It has not been {get_span} minutes since the last acquisition. this command can only be executed once every {get_span} minutes.\nYou can relax this restriction by becoming a premium user. Use the `premium` and `プレミアム` commands for more information about premium users"))
+                        f"最後に取得してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。",
+                        f"It has not been {get_span} minutes since the last acquisition. this command can only be executed once every {get_span} minutes."))
                     return
 
                 account.last_get_shops_at = datetime.now()
@@ -361,7 +363,8 @@ class CommandsHandler(commands.Cog):
                 await self._send_store_content(skins_uuids, user, ctx)
 
                 if self.bot.database.query(SkinLog).filter(
-                        sqlalchemy_func.DATE(SkinLog.date) == datetime.today().date(), SkinLog.account_puuid == account.puuid).count() == 0:
+                        sqlalchemy_func.DATE(SkinLog.date) == datetime.today().date(),
+                        SkinLog.account_puuid == account.puuid).count() == 0:
                     logs = [SkinLog(account_puuid=account.puuid,
                                     date=datetime.today().date(), skin_uuid=uuid) for uuid in skins_uuids]
                     self.bot.database.add_all(logs)
@@ -451,7 +454,7 @@ class CommandsHandler(commands.Cog):
 
         view = discord.ui.View()
         view.add_item(discord.ui.Button(label=user.get_text("プレミアムになる", "Become Premium"),
-                                        url="https://twitter.com/messages/compose?recipient_id=1247325126896447488&text="+user.get_text(
+                                        url="https://twitter.com/messages/compose?recipient_id=1247325126896447488&text=" + user.get_text(
                                             "%E3%83%97%E3%83%AC%E3%83%9F%E3%82%A2%E3%83%A0%E3%83%A6%E3%83%BC%E3%82%B6%E3%83%BC%E3%81%AB%E3%81%AA%E3%82%8A%E3%81%9F%E3%81%84%E3%81%A7%E3%81%99%E3%80%82%0D%0A%E6%94%AF%E6%89%95%E6%96%B9%E6%B3%95%28paypay%2Clinepay%2C%E5%8F%A3%E5%BA%A7%E6%8C%AF%E8%BE%BC%2Cpaypal%2Cbtc%2Cltc%29%3A+%0D%0A%E4%BD%95%E3%81%8B%E6%9C%88%E5%88%86%281%EF%BD%9E12%29%3A+",
                                             "I+wanna+be+premium+user%0D%0Apayment+via%28paypal%2Cbtc%2Cltc%2C+bank+transfer%29%3A+%0D%0Amonth%281%EF%BD%9E12%29%3A+")))
         view.add_item(discord.ui.Button(label=user.get_text("質問", "Ask question"), url="http://valorant.sakura.rip"))
@@ -604,9 +607,10 @@ Use the `premium` or `プレミアム` commands to get the details of premium us
         riot_account.puuid = cl.puuid
         user.riot_accounts.append(riot_account)
         self.bot.database.commit()
+        tier = await self.bot.run_blocking_func(self.bot.get_valorant_rank_tier, cl)
         await to.send(user.get_text(
-            f"ログイン情報の入力が完了しました。\n{riot_account.game_name}\nRANK: {self.bot.get_valorant_rank_tier(cl)}",
-            f"Your login information has been entered.\n{riot_account.game_name}\nRANK: {self.bot.get_valorant_rank_tier(cl)}"
+            f"ログイン情報の入力が完了しました。\n{riot_account.game_name}\nRANK: {tier}",
+            f"Your login information has been entered.\n{riot_account.game_name}\nRANK: {tier}"
         ))
 
     @commands.command("unregister", aliases=["登録解除"])
@@ -621,8 +625,8 @@ Use the `premium` or `プレミアム` commands to get the details of premium us
         if user.last_account_deleted_at and user.last_account_deleted_at + timedelta(
                 minutes=get_span) >= datetime.now():
             await ctx.send(user.get_text(
-                f"最後に削除してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。\nプレミアムユーザーになることで、この制限を緩和することができます。プレミアムユーザーの詳細は`premium`, `プレミアム`コマンドを利用してください",
-                f"It has not been {get_span} minutes since the last deletion. this command can only be executed once every {get_span} minutes.\nYou can relax this restriction by becoming a premium user. Use the `premium` and `プレミアム` commands for more information about premium users"))
+                f"最後に削除してから{get_span}分経過していません。{get_span}分に一度のみこのコマンドを実行可能です。",
+                f"It has not been {get_span} minutes since the last deletion. this command can only be executed once every {get_span} minutes."))
             return
 
         user.last_account_deleted_at = datetime.now()
