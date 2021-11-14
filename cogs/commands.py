@@ -44,7 +44,7 @@ class CommandsHandler(commands.Cog):
 
             if not accounts[0]._game_name:
                 await ctx.send(user.get_text("登録されている情報を更新しています....", "updating the registered information"))
-                await self.bot.update_account_profile(accounts[0])
+                await self.bot.update_account_profile(user, accounts[0])
             await func(view)(type("Interaction", (object,), {
                 "data": {"values": [accounts[0].game_name]},
                 "user": type("User", (object,), {"id": ctx.message.author.id}),
@@ -54,7 +54,7 @@ class CommandsHandler(commands.Cog):
         for acc in accounts:
             if not acc._game_name:
                 await ctx.send(user.get_text("登録されている情報を更新しています....", "updating the registered information"))
-                await self.bot.update_account_profile(acc)
+                await self.bot.update_account_profile(user, acc)
 
         menu = discord.ui.Select(options=[
             discord.SelectOption(
