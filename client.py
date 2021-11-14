@@ -77,7 +77,7 @@ class ValorantStoreBot(commands.AutoShardedBot):
 
     async def login_valorant(self, user: User, account: RiotAccount) -> Optional[valclient.Client]:
         cl = self.new_valorant_client_api(user.is_premium, account)
-        user_d = self.get_user_promised(account.user_id)
+        user_d = await self.get_user_promised(account.user_id)
         try:
             await self.run_blocking_func(cl.activate)
         except RateLimitedError:
