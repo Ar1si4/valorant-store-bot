@@ -13,11 +13,11 @@ class Guild(Base):
     response_here: int = Column("response_here", Integer)
 
     @staticmethod
-    def get_promised(session: Session, id: int) -> Guild:
-        guild = session.query(Guild).filter(Guild.id == id).first()
+    def get_promised(session: Session, uid: int) -> Guild:
+        guild = session.query(Guild).filter(Guild.id == uid).first()
         if guild is not None:
             return guild
-        new_guild = Guild(id=id)
+        new_guild = Guild(id=uid)
         session.add(new_guild)
         session.commit()
         return new_guild

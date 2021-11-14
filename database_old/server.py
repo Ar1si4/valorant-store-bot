@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from enum import IntEnum, auto
-from typing import List
-
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer
 
 from .setting import Base
 
@@ -20,12 +17,12 @@ class Server(Base):
     # recruitment_category_id: int = Column("recr_cid", Integer)
 
     @staticmethod
-    def get_promised(session, id: int) -> Server:
-        server = session.query(Server).filter(Server.id == id).first()
+    def get_promised(session, uid: int) -> Server:
+        server = session.query(Server).filter(Server.id == uid).first()
         if server is None:
-            session.add(Server(id=id))
+            session.add(Server(id=uid))
             session.commit()
-            server = session.query(Server).filter(Server.id == id).first()
+            server = session.query(Server).filter(Server.id == uid).first()
         return server
 
 #

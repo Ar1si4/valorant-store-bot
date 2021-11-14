@@ -39,11 +39,11 @@ class User(Base):
         self._is_premium = value
 
     @staticmethod
-    def get_promised(session: Session, id: int) -> User:
-        user = session.query(User).filter(User.id == id).first()
+    def get_promised(session: Session, uid: int) -> User:
+        user = session.query(User).filter(User.id == uid).first()
         if user is not None:
             return user
-        new_user = User(id=id)
+        new_user = User(id=uid)
         session.add(new_user)
         session.commit()
         return new_user

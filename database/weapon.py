@@ -1,10 +1,11 @@
 from __future__ import annotations
-from sqlalchemy import String, Column, Integer, UniqueConstraint
+
+from sqlalchemy import String, Column, Integer
 from sqlalchemy.orm import Session
 from valorant_api import SyncValorantApi
 
-from .user import User
 from .setting import Base
+from .user import User
 
 
 class Weapon(Base):

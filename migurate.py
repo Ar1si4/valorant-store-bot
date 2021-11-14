@@ -2,11 +2,11 @@ from typing import List
 
 from database import User as UserNew
 from database_old import User as UserOld
-from database import session as sessionNew
-from database_old import session as sessionOld
+from database import session as session_new
+from database_old import session as session_old
 from database import RiotAccount
 
-olds: List[UserOld] = sessionOld.query(UserOld).all()
+olds: List[UserOld] = session_old.query(UserOld).all()
 new_users = []
 for old in olds:
     if not old.riot_userid:
@@ -22,5 +22,5 @@ for old in olds:
         ]
     ))
 print(len(new_users))
-sessionNew.add_all(new_users)
-sessionNew.commit()
+session_new.add_all(new_users)
+session_new.commit()
