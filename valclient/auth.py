@@ -37,7 +37,7 @@ class Auth:
             'access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)')
 
         if r.json().get("error") == "rate_limited":
-            raise RateLimitedError("rate_limited")
+            raise RateLimitedError("rate limited")
         if r.json().get("error") == "auth_failure":
             raise InvalidCredentialError(f"invalid credential")
         try:
